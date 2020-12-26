@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="projectOpenProject" minHeight="100.0" minWidth="620.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="faith.samueljiang.epaceprepare.OpenProjectDialogController">
+   <padding>
+      <Insets bottom="9.0" left="9.0" right="9.0" top="9.0" />
+   </padding>
+   <children>
+      <VBox AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <children>
+            <HBox>
+               <children>
+                  <Label alignment="BASELINE_LEFT" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" text="%open.proj.path">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </Label>
+                  <TextField fx:id="projectPath" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin></TextField>
+                  <Button fx:id="projectPathButton" mnemonicParsing="false" onAction="#pickPath" style="-fx-background-color: LIGHTGREY;" text="..." />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="15.0" top="10.0" />
+         </padding>
+      </VBox>
+      <HBox alignment="BASELINE_RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <children>
+            <Button fx:id="projectCancel" mnemonicParsing="false" onAction="#cancelButton" prefWidth="70.0" style="-fx-background-color: LIGHTGREY;" text="%ui.cancel">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="projectOpen" mnemonicParsing="false" onAction="#openButton" prefWidth="70.0" style="-fx-background-color: rgb(52, 133, 247);" text="%ui.open" textFill="WHITE" />
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>

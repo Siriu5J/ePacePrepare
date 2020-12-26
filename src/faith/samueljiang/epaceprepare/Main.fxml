@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Pagination?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="faith.samueljiang.epaceprepare.MainController">
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu fx:id="menuBarFile" mnemonicParsing="false" text="%ui.menu.file">
+            <items>
+                  <MenuItem fx:id="menuOpenProject" mnemonicParsing="false" onAction="#openProject" text="%ui.open.project" />
+                  <MenuItem fx:id="menuNewProject" mnemonicParsing="false" onAction="#newProject" text="%ui.new.project" />
+              <MenuItem id="mainExit" fx:id="menuExit" mnemonicParsing="false" onAction="#safeExit" text="%ui.exit" />
+            </items>
+          </Menu>
+            <Menu fx:id="menuBarProject" mnemonicParsing="false" text="%ui.menu.project">
+               <items>
+                  <MenuItem fx:id="menuAddPdf" mnemonicParsing="false" onAction="#showAddPdf" text="%ui.add.pdf" />
+                  <MenuItem fx:id="menuAddAnnot" mnemonicParsing="false" onAction="#showAddAnnot" text="%ui.add.annot" />
+               </items>
+            </Menu>
+          <Menu fx:id="menuBarEdit" mnemonicParsing="false" text="%ui.menu.edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="%ui.undo" />
+            </items>
+          </Menu>
+          <Menu fx:id="menuBarAbout" mnemonicParsing="false" text="%ui.menu.about">
+            <items>
+              <MenuItem fx:id="menuAbout" mnemonicParsing="false" onAction="#showAbout" text="%ui.about.software" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <bottom>
+      <HBox alignment="CENTER_LEFT" spacing="5.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="CENTER">
+         <children>
+            <Label maxHeight="1.7976931348623157E308" text="Label" textFill="#9f9f9f" HBox.hgrow="ALWAYS">
+               <font>
+                  <Font size="11.0" />
+               </font>
+            </Label>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label text="Label" textFill="#9f9f9f" HBox.hgrow="NEVER">
+               <font>
+                  <Font size="11.0" />
+               </font>
+            </Label>
+         </children>
+         <padding>
+            <Insets bottom="3.0" left="5.0" right="5.0" top="3.0" />
+         </padding>
+      </HBox>
+   </bottom>
+   <left>
+      <VBox alignment="TOP_CENTER" minWidth="250.0" prefWidth="250.0" style="-fx-border-width: 0 1 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="TOP_CENTER">
+         <children>
+            <TreeView fx:id="projectTree" />
+            <GridPane alignment="CENTER" minHeight="250.0" style="-fx-background-color: WHITE; -fx-border-width: 1; -fx-border-color: LIGHTGREY;" VBox.vgrow="ALWAYS">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+               <children>
+                  <VBox alignment="CENTER" GridPane.rowIndex="2">
+                     <children>
+                        <Button fx:id="toolsCErase" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCEraseClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.eraser" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                     <children>
+                        <Button fx:id="toolsCBlank" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCBlankClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: white; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.blank" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.columnIndex="1">
+                     <children>
+                        <Button fx:id="toolsCMultiple" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCMultpleClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.multiple" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.columnIndex="2">
+                     <children>
+                        <Button fx:id="toolsCConnect" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCConnectClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.connect" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="toolsCCalli" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCCalliClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.calli" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="toolsCStrip" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCStripClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.strip" />
+                     </children>
+                  </VBox>
+                  <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                     <children>
+                        <Button fx:id="toolsCDict" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCDictClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.dict" />
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </GridPane>
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
+      </VBox>
+   </left>
+   <center>
+      <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
+         <children>
+            <Pagination pageCount="10" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: WHITE;" />
+         </children>
+      </StackPane>
+   </center>
+</BorderPane>
