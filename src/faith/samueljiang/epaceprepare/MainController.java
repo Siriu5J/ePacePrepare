@@ -10,17 +10,22 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import javax.swing.event.ChangeListener;
+import javax.swing.tree.TreeNode;
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -30,9 +35,14 @@ public class MainController implements Initializable {
     private ResourceBundle localeResource;
     private PrepareSdk blankExtractor;
     private FileHandler fileHandler;
+    private Stage currentStage;
 
     // Project Related Variables
     private ePACEProject project;
+    private String currentProjectPath;
+    private int currentPage;
+    private PDFModel pdfModel;
+    private PdfViewPaginationCallback callback;
 
     // Tools Selection; this shows the tools selected
     // 0 means non selected
@@ -42,11 +52,14 @@ public class MainController implements Initializable {
     @FXML // fx:id="menuBarFile"
     private Menu menuBarFile; // Value injected by FXMLLoader
 
+    @FXML // fx:id="menuNewProject"
+    private MenuItem menuNewProject; // Value injected by FXMLLoader
+
     @FXML // fx:id="menuOpenProject"
     private MenuItem menuOpenProject; // Value injected by FXMLLoader
 
-    @FXML // fx:id="menuNewProject"
-    private MenuItem menuNewProject; // Value injected by FXMLLoader
+    @FXML // fx:id="menuSettings"
+    private MenuItem menuSettings; // Value injected by FXMLLoader
 
     @FXML // fx:id="menuExit"
     private MenuItem menuExit; // Value injected by FXMLLoader
@@ -60,6 +73,30 @@ public class MainController implements Initializable {
     @FXML // fx:id="menuAddAnnot"
     private MenuItem menuAddAnnot; // Value injected by FXMLLoader
 
+    @FXML // fx:id="menuAutoGen"
+    private Menu menuAutoGen; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenPage"
+    private MenuItem menuGenPage; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenPace"
+    private MenuItem menuGenPace; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenPackage"
+    private Menu menuGenPackage; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenDebug"
+    private MenuItem menuGenDebug; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenRelease"
+    private MenuItem menuGenRelease; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuGenReleaseResource"
+    private MenuItem menuGenReleaseResource; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuProjProperties"
+    private MenuItem menuProjProperties; // Value injected by FXMLLoader
+
     @FXML // fx:id="menuBarEdit"
     private Menu menuBarEdit; // Value injected by FXMLLoader
 
@@ -68,6 +105,15 @@ public class MainController implements Initializable {
 
     @FXML // fx:id="menuAbout"
     private MenuItem menuAbout; // Value injected by FXMLLoader
+
+    @FXML // fx:id="leftLabel"
+    private Label leftLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="rightLabel"
+    private Label rightLabel; // Value injected by FXMLLoader
+
+    @FXML // fx:id="leftPane"
+    private VBox leftPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="projectTree"
     private TreeView<?> projectTree; // Value injected by FXMLLoader
@@ -93,8 +139,20 @@ public class MainController implements Initializable {
     @FXML // fx:id="toolsCDict"
     private Button toolsCDict; // Value injected by FXMLLoader
 
+    @FXML // fx:id="pdfView"
+    private Pagination pdfView; // Value injected by FXMLLoader
+
+    @FXML // fx:id="rightPane"
+    private VBox rightPane; // Value injected by FXMLLoader
+
     @FXML
     void newProject(ActionEvent event) {
+        // TODO: Handle open new project
+        // Close the PDF if there is an opened document
+        if (pdfModel != null) {
+            pdfModel.closePDF();
+        }
+
         // Open create project window
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("NewProjectDialog.fxml"));
@@ -119,16 +177,24 @@ public class MainController implements Initializable {
             stage.setScene(scene);
             stage.showAndWait();
 
-            if (hasOpenProject()) {
-                initPane();
+            if (!isSameProject(project.getProjectPath())) {
+                if (hasOpenProject()) {
+                    initPane();
+                }
             }
         } catch (Exception e) {
             System.err.println(e);
         }
     }
 
+
     @FXML
     void openProject(ActionEvent event) {
+        // Close the PDF if there is an opened document
+        if (pdfModel != null) {
+            pdfModel.closePDF();
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("OpenProjectDialog.fxml"));
             loader.setResources(localeResource);
@@ -152,14 +218,120 @@ public class MainController implements Initializable {
             stage.setScene(scene);
             stage.showAndWait();
 
-            if (hasOpenProject()) {
-                initPane();
+            if (!isSameProject(project.getProjectPath())) {
+                if (hasOpenProject()) {
+                    // TODO: Fix loading not showing
+                    // Set right label to loading project
+                    rightLabel.setText(localeResource.getString("ui.loading.project"));
+                    initPane();
+                }
             }
         } catch (Exception e) {
             System.err.println(e);
         }
-
     }
+
+
+    private boolean hasOpenProject() {
+        return this.project.getProjectPath() != null;
+    }
+
+
+    private boolean isSameProject(String newPath) {return newPath.equals(currentProjectPath);}
+
+
+    private void initPane() {
+        // Create the page info in config if necessary
+        if (fileHandler.getProperty(project.getProjectPath(), "config_populated").equals("0")) {
+            populateConfigWithInfo();
+        }
+
+
+        // Enable menu items
+        setDisabledMenuItems();
+
+        // Set the current project path
+        currentProjectPath = project.getProjectPath();
+
+        // Get current page
+        this.currentPage = Integer.parseInt(fileHandler.getProperty(project.getProjectPath(), "working_page"));
+
+        displayPDFPage();
+
+        // Add listener for height change (only on resize complete)
+        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixHeightChange(newVal.intValue()));
+
+        // Set bottom left label to path
+        leftLabel.setText("(" + project.getProjectName() + ") " + project.getProjectPath());
+
+        // Reset bottom right label to done
+        rightLabel.setText(localeResource.getString("ui.done"));
+    }
+
+
+    private void populateConfigWithInfo() {
+        File pdfFile = project.getPdfFile();
+        File config = project.getConfigFile();
+
+        // Loop through the
+        try (PDDocument pdf = PDDocument.load(pdfFile)) {
+            fileHandler.initConfigFilePages(config, pdf.getNumberOfPages());
+            // Update the property
+            fileHandler.setProperty(project.getProjectPath(), "config_populated", "1");
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+    }
+
+
+    private void populateTreeView() {
+        File properties = new File(project.getProjectPath() + "/.properties");
+        File config = project.getConfigFile();
+
+        // Get Info
+        Node pageContent = fileHandler.getPageElements(config, String.valueOf(currentPage));
+        NodeList pageChildren = pageContent.getChildNodes();
+        // Transform info from Node to TreeView
+        TreeItem rootItem = new TreeItem("Page " + pageContent.getAttributes().getNamedItem("id").getNodeValue());
+        projectTree.setRoot(rootItem);
+        /*for (int i = 0; i < pageChildren.getLength(); i++) {
+            rootItem.getChildren().add(pageChildren.item(i).getNodeName());
+        }*/
+    }
+
+
+    private void displayPDFPage() {
+        File pdfFile = project.getPdfFile();
+        this.pdfModel = new PDFModel(pdfFile);
+
+        // Initialize PDF pagination
+        callback = new PdfViewPaginationCallback(pdfModel, currentStage.getHeight());
+        pdfView.setManaged(true);
+        pdfView.setPageCount(pdfModel.numPages());
+        pdfView.setPageFactory(index -> callback.call(index));
+        pdfView.setCurrentPageIndex(currentPage - 1);
+        pdfView.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> pageControl(newIndex.intValue()));
+        pageControl(currentPage - 1);
+    }
+
+
+    private void pageControl(Integer index) {
+        fileHandler.setProperty(project.getProjectPath(), "working_page", String.valueOf(index + 1));
+        this.currentPage = index + 1;
+
+        // Populate the tree view
+        populateTreeView();
+    }
+
+
+    private void fixHeightChange(Integer height) {
+        if (hasOpenProject()) {
+            if (project.getPdfFile() != null) {
+                callback.setPdfFit(currentStage.getHeight(), leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
+            }
+        }
+    }
+
 
     @FXML
     void safeExit(ActionEvent event) {
@@ -259,45 +431,6 @@ public class MainController implements Initializable {
     }
 
 
-    private boolean hasOpenProject() {
-        return this.project.getProjectPath() != null;
-    }
-
-
-    private void initPane() {
-        // Create the page info in config if necessary
-        if (fileHandler.getProperty(project.getProjectPath(), "config_populated").equals("0")) {
-            populateConfigWithInfo();
-        }
-
-        //populateTreeView();
-    }
-
-
-    private void populateConfigWithInfo() {
-        File pdfFile = project.getPdfFile();
-        File config = project.getConfigFile();
-
-        // Loop through the
-        try (PDDocument pdf = PDDocument.load(pdfFile)) {
-            fileHandler.initConfigFilePages(config, pdf.getNumberOfPages());
-            // Update the property
-            fileHandler.updateProperty(project.getProjectPath(), "config_populated", "1");
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-    }
-
-
-    private void populateTreeView() {
-        File properties = new File(project.getProjectPath() + "/.properties");
-        File config = project.getConfigFile();
-
-        // Populate the tree for current page
-
-    }
-
-
     private void highlight(int tool) {
 
         // Fill everything with white
@@ -334,6 +467,35 @@ public class MainController implements Initializable {
         }
     }
 
+
+    public void setMainStage(Stage stage) {
+        this.currentStage = stage;
+    }
+
+
+    private void setDisabledMenuItems() {
+        if (!hasOpenProject()) {
+            menuAddPdf.setDisable(true);
+            menuAddAnnot.setDisable(true);
+            menuGenPace.setDisable(true);
+            menuGenPage.setDisable(true);
+            menuGenDebug.setDisable(true);
+            menuGenRelease.setDisable(true);
+            menuGenReleaseResource.setDisable(true);
+            menuProjProperties.setDisable(true);
+        } else {
+            menuAddPdf.setDisable(false);
+            menuAddAnnot.setDisable(false);
+            menuGenPace.setDisable(false);
+            menuGenPage.setDisable(false);
+            menuGenDebug.setDisable(false);
+            menuGenRelease.setDisable(false);
+            menuGenReleaseResource.setDisable(false);
+            menuProjProperties.setDisable(false);
+        }
+    }
+
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.localeResource = resources;
@@ -342,50 +504,69 @@ public class MainController implements Initializable {
         this.project = new ePACEProject();
 
         // Fill the images to the tool buttons
-        Image toolsBlank = new Image("/asset/tools-blank.png");
+        Image toolsBlank = new Image("/asset/tools-blank.png", 30, 30, false, false);
         ImageView toolsBlankView = new ImageView(toolsBlank);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCBlank.setGraphic(toolsBlankView);
 
-        Image toolsMulti = new Image("/asset/tools-multi.png", 45, 45, false, false);
+        Image toolsMulti = new Image("/asset/tools-multi.png", 30, 30, false, false);
         ImageView toolsMultiView = new ImageView(toolsMulti);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCMultiple.setGraphic(toolsMultiView);
 
-        Image toolsConnect = new Image("/asset/tools-connect.png", 45, 45, false, false);
+        Image toolsConnect = new Image("/asset/tools-connect.png", 30, 30, false, false);
         ImageView toolsConnectView = new ImageView(toolsConnect);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCConnect.setGraphic(toolsConnectView);
 
-        Image toolsCalli= new Image("/asset/tools-calli.png", 45, 45, false, false);
+        Image toolsCalli= new Image("/asset/tools-calli.png", 30, 30, false, false);
         ImageView toolsCalliView = new ImageView(toolsCalli);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCCalli.setGraphic(toolsCalliView);
 
-        Image toolsStrip = new Image("/asset/tools-strip.png", 45, 45, false, false);
+        Image toolsStrip = new Image("/asset/tools-strip.png", 30, 30, false, false);
         ImageView toolsStripView = new ImageView(toolsStrip);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCStrip.setGraphic(toolsStripView);
 
-        Image toolsDict = new Image("/asset/tools-dict.png", 45, 45, false, false);
+        Image toolsDict = new Image("/asset/tools-dict.png", 30, 30, false, false);
         ImageView toolsDictView = new ImageView(toolsDict);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCDict.setGraphic(toolsDictView);
 
-        Image toolsEraser = new Image("/asset/tools-eraser.png", 45, 45, false, false);
+        Image toolsEraser = new Image("/asset/tools-eraser.png", 30, 30, false, false);
         ImageView toolsEraserView = new ImageView(toolsEraser);
-        toolsBlankView.setFitHeight(45);
+        toolsBlankView.setFitHeight(30);
         toolsBlankView.setPreserveRatio(true);
         toolsCErase.setGraphic(toolsEraserView);
 
         // Tools set
         toolSelect = 0;
 
+        // Set right pane width
+        rightPane.setMinWidth(200);
+
+        // Hide pagination on start
+        pdfView.setManaged(false);
+
+        // Default project set to ""
+        currentProjectPath = "";
+
+        // Disable necessary menu items
+        setDisabledMenuItems();
+
+        // Initialize the two labels at the bottom
+        leftLabel.setText(localeResource.getString("ui.no.open.project"));
+        rightLabel.setText(localeResource.getString("ui.done"));
+
+        // TODO: Implement those features in future
+        menuSettings.setVisible(false);
+        menuBarEdit.setVisible(false);
     }
 }

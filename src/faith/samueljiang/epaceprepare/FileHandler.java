@@ -68,8 +68,8 @@ public class FileHandler {
         annot = annotDest.toFile();
 
         // Add pdf and annot files to properties
-        updateProperty(projectPath, "pdf_path", pdf.getAbsolutePath());
-        updateProperty(projectPath, "annot_path", annot.getAbsolutePath());
+        setProperty(projectPath, "pdf_path", pdf.getAbsolutePath());
+        setProperty(projectPath, "annot_path", annot.getAbsolutePath());
 
         // Initialize PACE_Config.xml
         initConfigFileHeader(config, course, number);
@@ -145,7 +145,7 @@ public class FileHandler {
      * @param key
      * @param value
      */
-    public void updateProperty(String path, String key, String value) {
+    public void setProperty(String path, String key, String value) {
         try {
             // Parse the file
             JSONParser parser = new JSONParser();
@@ -176,6 +176,9 @@ public class FileHandler {
             FileReader reader = new FileReader(path + "/.properties");
             JSONObject json = (JSONObject) parser.parse(reader);
 
+            if (key.equals("working_page")) {
+                return String.valueOf(json.get(key));
+            }
             return (String) json.get(key);
         } catch (Exception e) {
             System.err.println(e);
@@ -370,7 +373,7 @@ public class FileHandler {
             } else {
                 NodeList parentList = doc.getElementsByTagName(parent);
                 for (int i = 0; i < parentList.getLength(); i++) {
-                    if (parentList.item(i).getFirstChild().getNodeValue().equals(id)) {
+                    if (parentList.item(i).getNodeValue().equals(id)) {
                         parentNode = parentList.item(i);
                         break;
                     }
@@ -389,6 +392,29 @@ public class FileHandler {
         }
 
         return "";
+    }
+
+
+    public Node getPageElements(File xmlFile, String page) {
+        try {
+            // Open File
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.parse(xmlFile);
+
+            // Locate the entry
+            NodeList parentList = doc.getElementsByTagName("Page");
+            for (int i = 0; i < parentList.getLength(); i++) {
+                Element node = (Element) parentList.item(i);
+                if (node.getAttribute("id").equals(page)) {
+                    return parentList.item(i);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+
+        return null;
     }
 
 

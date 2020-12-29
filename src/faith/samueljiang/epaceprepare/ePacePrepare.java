@@ -24,15 +24,20 @@ public class ePacePrepare extends Application {
         // Add localization initialization
         cn_locale = Locale.CHINA;
         cn_bundle = ResourceBundle.getBundle("faith.samueljiang.epaceprepare.locale", cn_locale);
-        FXMLLoader guiLoader = new FXMLLoader();
+        FXMLLoader guiLoader = new FXMLLoader(getClass().getResource("Main.fxml"));
         guiLoader.setResources(cn_bundle);
 
-        Parent root = guiLoader.load(getClass().getResource("Main.fxml"), cn_bundle);
+        Parent root = (Parent) guiLoader.load();
         Scene mainScene = new Scene(root, 800, 800);
         primaryStage.setTitle(cn_bundle.getString("program.name") + " " + version);
-        primaryStage.setMinHeight(840);
-        primaryStage.setMinWidth(800);
+        primaryStage.setMinHeight(860);
+        primaryStage.setMinWidth(1050);
         primaryStage.setScene(mainScene);
+
+        // Pass primary stage to MainController
+        MainController mc = guiLoader.getController();
+        mc.setMainStage(primaryStage);
+
         primaryStage.show();
     }
 }
