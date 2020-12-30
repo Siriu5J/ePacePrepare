@@ -13,7 +13,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -48,6 +52,8 @@ public class MainController implements Initializable {
     // 0 means non selected
     private int toolSelect;
 
+    @FXML // fx:id="mainPane"
+    private BorderPane mainPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="menuBarFile"
     private Menu menuBarFile; // Value injected by FXMLLoader
@@ -69,6 +75,9 @@ public class MainController implements Initializable {
 
     @FXML // fx:id="menuAddPdf"
     private MenuItem menuAddPdf; // Value injected by FXMLLoader
+
+    @FXML // fx:id="menuAddTest"
+    private MenuItem menuAddTest; // Value injected by FXMLLoader
 
     @FXML // fx:id="menuAddAnnot"
     private MenuItem menuAddAnnot; // Value injected by FXMLLoader
@@ -143,7 +152,40 @@ public class MainController implements Initializable {
     private Pagination pdfView; // Value injected by FXMLLoader
 
     @FXML // fx:id="rightPane"
-    private VBox rightPane; // Value injected by FXMLLoader
+    private AnchorPane rightPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="rightPaneVBox"
+    private VBox rightPaneVBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="propTitle"
+    private Text propTitle; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPageType"
+    private HBox ppPageType; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPageTypeBox"
+    private MenuButton ppPageTypeBox; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPageNormal"
+    private MenuItem ppPageNormal; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPageCU"
+    private MenuItem ppPageCU; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPageST"
+    private MenuItem ppPageST; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppPagePT"
+    private MenuItem ppPagePT; // Value injected by FXMLLoader
+
+
+    @FXML
+    void hideRightPane(ActionEvent event) {
+        rightPane.setVisible(false);
+        rightPane.setManaged(false);
+        projectTree.getSelectionModel().clearSelection();
+    }
+
 
     @FXML
     void newProject(ActionEvent event) {
@@ -259,7 +301,7 @@ public class MainController implements Initializable {
         displayPDFPage();
 
         // Add listener for height change (only on resize complete)
-        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixHeightChange(newVal.intValue()));
+        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixHeightChange(newVal.doubleValue()));
 
         // Set bottom left label to path
         leftLabel.setText("(" + project.getProjectName() + ") " + project.getProjectPath());
@@ -291,12 +333,26 @@ public class MainController implements Initializable {
         // Get Info
         Node pageContent = fileHandler.getPageElements(config, String.valueOf(currentPage));
         NodeList pageChildren = pageContent.getChildNodes();
+
         // Transform info from Node to TreeView
         TreeItem rootItem = new TreeItem("Page " + pageContent.getAttributes().getNamedItem("id").getNodeValue());
+        rootItem.setExpanded(true);
         projectTree.setRoot(rootItem);
         /*for (int i = 0; i < pageChildren.getLength(); i++) {
             rootItem.getChildren().add(pageChildren.item(i).getNodeName());
         }*/
+
+        // Set Event Handler
+        projectTree.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {   // This fixes the exception occurred when the minimize button is clicked on the side pane
+                if (newVal.getParent() == null) {   // selected value is a root (i.e. the page node)
+                    rightPane.setVisible(true);
+                    rightPane.setManaged(true);
+                    propTitle.setText(localeResource.getString("ui.page.properties"));
+                    ppPageType.setManaged(true);
+                }
+            }
+        });
     }
 
 
@@ -319,15 +375,18 @@ public class MainController implements Initializable {
         fileHandler.setProperty(project.getProjectPath(), "working_page", String.valueOf(index + 1));
         this.currentPage = index + 1;
 
+        // Make sure the new height is valid
+        fixHeightChange(currentStage.getHeight());
+
         // Populate the tree view
         populateTreeView();
     }
 
 
-    private void fixHeightChange(Integer height) {
+    private void fixHeightChange(Double height) {
         if (hasOpenProject()) {
             if (project.getPdfFile() != null) {
-                callback.setPdfFit(currentStage.getHeight(), leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
+                callback.setPdfFit(height, leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
             }
         }
     }
@@ -468,6 +527,31 @@ public class MainController implements Initializable {
     }
 
 
+    @FXML
+    void ppPageCUSelect(ActionEvent event) {
+        //Set Text to menu
+        ppPageTypeBox.setText(ppPageCU.getText());
+    }
+
+    @FXML
+    void ppPageNormalSelect(ActionEvent event) {
+        //Set Text to menu
+        ppPageTypeBox.setText(ppPageNormal.getText());
+    }
+
+    @FXML
+    void ppPagePTSelect(ActionEvent event) {
+        //Set Text to menu
+        ppPageTypeBox.setText(ppPagePT.getText());
+    }
+
+    @FXML
+    void ppPageSTSelect(ActionEvent event) {
+        //Set Text to menu
+        ppPageTypeBox.setText(ppPageST.getText());
+    }
+
+
     public void setMainStage(Stage stage) {
         this.currentStage = stage;
     }
@@ -483,6 +567,14 @@ public class MainController implements Initializable {
             menuGenRelease.setDisable(true);
             menuGenReleaseResource.setDisable(true);
             menuProjProperties.setDisable(true);
+            
+            toolsCBlank.setDisable(true);
+            toolsCErase.setDisable(true);
+            toolsCDict.setDisable(true);
+            toolsCStrip.setDisable(true);
+            toolsCCalli.setDisable(true);
+            toolsCMultiple.setDisable(true);
+            toolsCConnect.setDisable(true);
         } else {
             menuAddPdf.setDisable(false);
             menuAddAnnot.setDisable(false);
@@ -492,6 +584,14 @@ public class MainController implements Initializable {
             menuGenRelease.setDisable(false);
             menuGenReleaseResource.setDisable(false);
             menuProjProperties.setDisable(false);
+
+            toolsCBlank.setDisable(false);
+            toolsCErase.setDisable(false);
+            toolsCDict.setDisable(false);
+            toolsCStrip.setDisable(false);
+            toolsCCalli.setDisable(false);
+            toolsCMultiple.setDisable(false);
+            toolsCConnect.setDisable(false);
         }
     }
 
@@ -550,7 +650,7 @@ public class MainController implements Initializable {
         toolSelect = 0;
 
         // Set right pane width
-        rightPane.setMinWidth(200);
+        rightPane.setMinWidth(190);
 
         // Hide pagination on start
         pdfView.setManaged(false);
@@ -560,6 +660,10 @@ public class MainController implements Initializable {
 
         // Disable necessary menu items
         setDisabledMenuItems();
+
+        // Set hide properties menu
+        rightPane.setVisible(false);
+        rightPane.setManaged(false);
 
         // Initialize the two labels at the bottom
         leftLabel.setText(localeResource.getString("ui.no.open.project"));

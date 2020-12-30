@@ -17,18 +17,18 @@ public class PdfViewPaginationCallback implements Callback<Integer, ImageView> {
     @Override
     public ImageView call(Integer index) {
         this.pdfPage = new ImageView(pdfModel.getImage(index));
-        pdfPage.setFitHeight(windowHeight - 130);
+        pdfPage.setFitHeight(windowHeight - 140);
         pdfPage.setPreserveRatio(true);
         return pdfPage;
     }
 
     public void setPdfFit(double windowHeight, double leftPaneWidth, double rightPaneWidth, double windowWidth) {
         this.windowHeight = windowHeight;
-        double usableWidth = windowWidth - leftPaneWidth + rightPaneWidth + 20;
+        double usableWidth = windowWidth - (leftPaneWidth + rightPaneWidth + 10);
         double pdfRatio = pdfPage.getImage().getHeight() / pdfPage.getImage().getWidth();
-        double futureWidth = (windowHeight - 150) / pdfRatio;
+        double futureWidth = (windowHeight - 140) / pdfRatio;
         if (usableWidth > futureWidth) {
-            pdfPage.setFitHeight(windowHeight - 150);
+            pdfPage.setFitHeight(windowHeight - 140);
         } else {
             pdfPage.setFitWidth(usableWidth);
         }

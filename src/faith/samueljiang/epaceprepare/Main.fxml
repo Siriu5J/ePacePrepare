@@ -5,10 +5,12 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -20,7 +22,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="faith.samueljiang.epaceprepare.MainController">
+<BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="faith.samueljiang.epaceprepare.MainController">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
@@ -35,6 +37,7 @@
             <Menu fx:id="menuBarProject" mnemonicParsing="false" text="%ui.menu.project">
                <items>
                   <MenuItem fx:id="menuAddPdf" mnemonicParsing="false" onAction="#showAddPdf" text="%ui.add.pdf" />
+                  <MenuItem fx:id="menuAddTest" mnemonicParsing="false" text="%ui.add.test" />
                   <MenuItem fx:id="menuAddAnnot" mnemonicParsing="false" onAction="#showAddAnnot" text="%ui.add.annot" />
                   <Menu fx:id="menuAutoGen" mnemonicParsing="false" text="%ui.auto.gen">
                     <items>
@@ -162,9 +165,9 @@
       </VBox>
    </left>
    <center>
-      <StackPane prefHeight="150.0" prefWidth="200.0" style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
+      <StackPane style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
          <children>
-            <Pagination fx:id="pdfView" pageCount="10" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: GREY;" />
+            <Pagination fx:id="pdfView" pageCount="10" style="-fx-background-color: GREY;" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -172,6 +175,52 @@
       </StackPane>
    </center>
    <right>
-      <VBox fx:id="rightPane" maxWidth="200.0" minWidth="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+      <AnchorPane fx:id="rightPane" prefWidth="200.0" style="-fx-border-width: 0 0 0 1;" BorderPane.alignment="CENTER">
+         <children>
+            <VBox fx:id="rightPaneVBox" maxWidth="190.0" minWidth="190.0" prefWidth="190.0" style="-fx-background-color: WHITE; -fx-border-width: 1; -fx-border-color: LIGHTGREY;" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+               <children>
+                  <HBox style="-fx-border-width: 0 0 1 0; -fx-border-color: LIGHTGREY; -fx-background-color: #EEEEEE;">
+                     <children>
+                        <Text fx:id="propTitle" strokeType="OUTSIDE" strokeWidth="0.0" text="%ui.page.properties">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                           <HBox.margin>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </HBox.margin>
+                        </Text>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#hideRightPane" style="-fx-background-color: LIGHTGREY; -fx-background-radius: 0;" text="_">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                        </Button>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="ppPageType" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.page.type">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <MenuButton fx:id="ppPageTypeBox" minWidth="-Infinity" mnemonicParsing="false" style="-fx-background-color: LIGHTGREY;" text="%ui.page.type.not.selected">
+                           <items>
+                              <MenuItem fx:id="ppPageNormal" mnemonicParsing="false" onAction="#ppPageNormalSelect" text="%page.type.normal" />
+                              <MenuItem fx:id="ppPageCU" mnemonicParsing="false" onAction="#ppPageCUSelect" text="%page.type.cu" />
+                              <MenuItem fx:id="ppPageST" mnemonicParsing="false" onAction="#ppPageSTSelect" text="%page.type.st" />
+                              <MenuItem fx:id="ppPagePT" mnemonicParsing="false" onAction="#ppPagePTSelect" text="%page.type.pt" />
+                           </items>
+                        </MenuButton>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </AnchorPane>
    </right>
 </BorderPane>
