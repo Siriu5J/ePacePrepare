@@ -313,16 +313,19 @@ public class MainController implements Initializable {
 
     private void populateConfigWithInfo() {
         File pdfFile = project.getPdfFile();
+        pdfModel = new PDFModel(pdfFile);
         File config = project.getConfigFile();
+        Integer numberOfPages = pdfModel.pdf.getNumberOfPages();
 
         // Loop through the
-        try (PDDocument pdf = PDDocument.load(pdfFile)) {
-            fileHandler.initConfigFilePages(config, pdf.getNumberOfPages());
+            fileHandler.initConfigFilePages(config, numberOfPages);
+            try {
+                fileHandler.updateXMLNode(config, "TotalPages", "", numberOfPages.toString());
+            } catch (Exception e) {
+                System.err.println("Error while recording Total Pages.\n" + e.toString());
+            }
             // Update the property
             fileHandler.setProperty(project.getProjectPath(), "config_populated", "1");
-        } catch (Exception e) {
-            System.err.println(e);
-        }
     }
 
 

@@ -11,20 +11,20 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 public class PDFModel {
-    private PDDocument PDFDocument;
+    public PDDocument pdf;
     private PDFRenderer renderer;
 
     PDFModel(File pdf) {
         try {
-            this.PDFDocument = PDDocument.load(pdf);
-            this.renderer = new PDFRenderer(PDFDocument);
+            this.pdf = PDDocument.load(pdf);
+            this.renderer = new PDFRenderer(this.pdf);
         } catch (Exception e) {
             System.err.println(e);
         }
     }
 
     public int numPages() {
-        return PDFDocument.getPages().getCount();
+        return pdf.getPages().getCount();
     }
 
     public Image getImage(int pageNumber) {
@@ -39,7 +39,7 @@ public class PDFModel {
 
     public void closePDF() {
         try {
-            PDFDocument.close();
+            pdf.close();
         } catch (Exception e) {
             System.err.println(e);
         }
