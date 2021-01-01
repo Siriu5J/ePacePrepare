@@ -41,8 +41,8 @@
                   <MenuItem fx:id="menuAddAnnot" mnemonicParsing="false" onAction="#showAddAnnot" text="%ui.add.annot" />
                   <Menu fx:id="menuAutoGen" mnemonicParsing="false" text="%ui.auto.gen">
                     <items>
-                        <MenuItem fx:id="menuGenPage" mnemonicParsing="false" text="%ui.auto.gen.page" />
-                      <MenuItem fx:id="menuGenPace" mnemonicParsing="false" text="%ui.auto.gen.pace" />
+                        <MenuItem fx:id="menuGenPage" mnemonicParsing="false" onAction="#AutoGenAnnotPage" text="%ui.auto.gen.page" />
+                      <MenuItem fx:id="menuGenPace" mnemonicParsing="false" onAction="#AutoGenAnnotPace" text="%ui.auto.gen.pace" />
                     </items>
                   </Menu>
                   <Menu fx:id="menuGenPackage" mnemonicParsing="false" text="%ui.gen.package">

@@ -27,7 +27,11 @@ public class ePacePrepare extends Application {
         FXMLLoader guiLoader = new FXMLLoader(getClass().getResource("Main.fxml"));
         guiLoader.setResources(cn_bundle);
 
-        Parent root = (Parent) guiLoader.load();
+        // Initialize PdfBox
+        // TODO: Have PdfBox initialize font cache
+        // Try this: https://albert-kuo.blogspot.com/2016/07/pdfbox-building-on-disk-font-cache-this.html
+
+        Parent root = guiLoader.load();
         Scene mainScene = new Scene(root, 800, 800);
         primaryStage.setTitle(cn_bundle.getString("program.name") + " " + version);
         primaryStage.setMinHeight(860);

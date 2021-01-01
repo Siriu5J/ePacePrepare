@@ -20,24 +20,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.swing.event.ChangeListener;
-import javax.swing.tree.TreeNode;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
 
     private ResourceBundle localeResource;
-    private PrepareSdk blankExtractor;
+    private PrepareSdk prepareSdk;
     private FileHandler fileHandler;
     private Stage currentStage;
 
@@ -184,6 +178,7 @@ public class MainController implements Initializable {
         rightPane.setVisible(false);
         rightPane.setManaged(false);
         projectTree.getSelectionModel().clearSelection();
+        callback.setPdfFit(currentStage.getHeight(), leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
     }
 
 
@@ -288,6 +283,8 @@ public class MainController implements Initializable {
             populateConfigWithInfo();
         }
 
+        // Init the PrepareSdk
+        this.prepareSdk = new PrepareSdk(project);
 
         // Enable menu items
         setDisabledMenuItems();
@@ -308,6 +305,9 @@ public class MainController implements Initializable {
 
         // Reset bottom right label to done
         rightLabel.setText(localeResource.getString("ui.done"));
+
+        // Set window title to include the project name
+        currentStage.setTitle(localeResource.getString("program.name") + " " + ePacePrepare.version + " | " + project.getProjectName());
     }
 
 
@@ -330,7 +330,6 @@ public class MainController implements Initializable {
 
 
     private void populateTreeView() {
-        File properties = new File(project.getProjectPath() + "/.properties");
         File config = project.getConfigFile();
 
         // Get Info
@@ -364,10 +363,10 @@ public class MainController implements Initializable {
         this.pdfModel = new PDFModel(pdfFile);
 
         // Initialize PDF pagination
-        callback = new PdfViewPaginationCallback(pdfModel, currentStage.getHeight());
+        this.callback = new PdfViewPaginationCallback(pdfModel, currentStage.getHeight());
         pdfView.setManaged(true);
         pdfView.setPageCount(pdfModel.numPages());
-        pdfView.setPageFactory(index -> callback.call(index));
+        pdfView.setPageFactory(index -> this.callback.call(index));
         pdfView.setCurrentPageIndex(currentPage - 1);
         pdfView.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> pageControl(newIndex.intValue()));
         pageControl(currentPage - 1);
@@ -375,6 +374,7 @@ public class MainController implements Initializable {
 
 
     private void pageControl(Integer index) {
+        long start = System.nanoTime();
         fileHandler.setProperty(project.getProjectPath(), "working_page", String.valueOf(index + 1));
         this.currentPage = index + 1;
 
@@ -383,6 +383,8 @@ public class MainController implements Initializable {
 
         // Populate the tree view
         populateTreeView();
+        long end = System.nanoTime();
+        System.out.println("PageControl Time: " + ((end - start) / 1000000000.00));
     }
 
 
@@ -400,6 +402,8 @@ public class MainController implements Initializable {
         System.exit(0);
     }
 
+
+
     @FXML
     void showAddAnnot(ActionEvent event) {
 
@@ -408,6 +412,26 @@ public class MainController implements Initializable {
     @FXML
     void showAddPdf(ActionEvent event) {
 
+    }
+
+    @FXML
+    void AutoGenAnnotPage(ActionEvent event) {
+        // TODO: Add warning messages.
+        try {
+            prepareSdk.autoPreparePage(this.currentPage, true);
+        } catch (NoSuchFieldException e) {
+            System.err.println(e.toString());
+        }
+    }
+
+    @FXML
+    void AutoGenAnnotPace(ActionEvent event) {
+        // TODO: Add warning messages.
+        try {
+            prepareSdk.autoPreparePace();
+        } catch (Exception e) {
+            System.err.println(e.toString());
+        }
     }
 
     @FXML
@@ -603,7 +627,6 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         this.localeResource = resources;
         this.fileHandler = new FileHandler();
-        this.blankExtractor = new PrepareSdk();
         this.project = new ePACEProject();
 
         // Fill the images to the tool buttons

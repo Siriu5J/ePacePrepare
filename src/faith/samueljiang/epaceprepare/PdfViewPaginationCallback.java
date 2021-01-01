@@ -2,6 +2,7 @@ package faith.samueljiang.epaceprepare;
 
 import javafx.scene.image.ImageView;
 import javafx.util.Callback;
+import org.apache.pdfbox.pdmodel.PDDocument;
 
 public class PdfViewPaginationCallback implements Callback<Integer, ImageView> {
 
@@ -10,13 +11,17 @@ public class PdfViewPaginationCallback implements Callback<Integer, ImageView> {
     private ImageView pdfPage;
 
     PdfViewPaginationCallback(PDFModel pdf, double height) {
-        this.pdfModel = pdf;
+        this.pdfModel = new PDFModel(pdf);
         this.windowHeight = height;
     }
 
     @Override
     public ImageView call(Integer index) {
+        long start = System.nanoTime();
         this.pdfPage = new ImageView(pdfModel.getImage(index));
+        long end = System.nanoTime();
+        System.out.println("Render PDF Time: " + ((end - start) / 1000000000.00));
+
         pdfPage.setFitHeight(windowHeight - 140);
         pdfPage.setPreserveRatio(true);
         return pdfPage;

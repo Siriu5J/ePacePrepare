@@ -13,6 +13,21 @@ public class ePACEProject {
 
     ePACEProject() {}
 
+    ePACEProject(ePACEProject in) {
+        this.projectName = in.getProjectName();
+        this.projectPath = in.getProjectPath();
+        this.configFile = new File(in.getConfigFile().getAbsolutePath());
+        this.course = in.getCourse();
+        this.number = in.getNumber();
+
+        if (in.getPdfFile() != null) {
+            this.pdfFile = new File(in.getPdfFile().getAbsolutePath());
+        }
+        if (in.getAnnotFile() != null) {
+            this.annotFile = new File(in.getAnnotFile().getAbsolutePath());
+        }
+    }
+
     ePACEProject(String projectName, String projectPath, File config, String course, int number) {
         this.projectName = projectName;
         this.projectPath = projectPath;

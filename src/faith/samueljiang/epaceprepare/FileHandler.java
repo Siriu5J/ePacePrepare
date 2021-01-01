@@ -3,7 +3,6 @@ package faith.samueljiang.epaceprepare;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -538,13 +537,12 @@ public class FileHandler {
 
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setAttribute("indent-number", 4);
             Transformer transformer = transformerFactory.newTransformer();
             // Beautify the format of the resulted XML
-            if (includeHeader) {
-                transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-            }
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "no");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             transformer.transform(source, output);
 
         } catch (Exception e) {
@@ -604,8 +602,10 @@ public class FileHandler {
                 Element page = doc.createElement("Page");
                 page.setAttribute("id", Integer.toString(i));
                 Element type = doc.createElement("Type");
+                Element createdBy = doc.createElement("CreatedBy");
                 root.appendChild(page);
                 page.appendChild(type);
+                page.appendChild(createdBy);
             }
 
             // write the content into xml file
