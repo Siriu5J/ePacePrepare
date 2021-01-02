@@ -537,9 +537,15 @@ public class FileHandler {
 
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            transformerFactory.setAttribute("indent-number", 4);
+            if (!includeHeader) {
+                transformerFactory.setAttribute("indent-number", 4);
+            }
             Transformer transformer = transformerFactory.newTransformer();
+
             // Beautify the format of the resulted XML
+            if (includeHeader) {
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            }
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.INDENT, "no");
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");

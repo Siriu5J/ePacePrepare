@@ -40,6 +40,12 @@ public class PrepareSdk {
     }
 
 
+    /**
+     *
+     * @param page
+     * @param save
+     * @throws NoSuchFieldException
+     */
     public void autoPreparePage(int page, boolean save) throws NoSuchFieldException {
         page--; // Change the 1-X based numbering to 0-X based numbering
         if (page > pdfDoc.getNumberOfPages() || page < 0) { // Check validity of the incoming page numbering
@@ -71,13 +77,15 @@ public class PrepareSdk {
             }
 
             // Get all the information that could be used to generate activity
+            int id = 1;
             for (Node activity : activitiesOnPage) {
                 // Parse <freetext> node
                 switch (activity.getNodeName()) {
                     case "freetext":
-                        parseFreeText(activity, configOnPage);
+                        parseFreeText(activity, configOnPage, id);
                         break;
                 }
+                id++;
             }
 
             // Set the CreatedBy to EPP
@@ -95,6 +103,10 @@ public class PrepareSdk {
     }
 
 
+    /**
+     *
+     * @throws Exception
+     */
     public void autoPreparePace() throws Exception {
         for (int i = 0; i < pdfDoc.getNumberOfPages(); i++) {
             this.autoPreparePage(i + 1, false);
@@ -159,7 +171,7 @@ public class PrepareSdk {
      * @throws ParserConfigurationException The XML parser isn't configured correctly
      * @throws SAXException The XML file cannot be parsed
      */
-    private Element getPageFromConfig(Integer page) throws NoSuchFieldException, IOException, ParserConfigurationException, SAXException {
+    public Element getPageFromConfig(Integer page) throws NoSuchFieldException, IOException, ParserConfigurationException, SAXException {
         if (this.config == null) {  // If the config file has never been opened in this session, open it
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -179,7 +191,7 @@ public class PrepareSdk {
     }
 
 
-    private void parseFreeText(Node activity, Element configOnPage) {
+    private void parseFreeText(Node activity, Element configOnPage, Integer id) {
         // Only parse this <freetext> that is visible
         if (activity.getAttributes().getNamedItem("opacity").getNodeValue().equals("1")) {
             // Get the attributes from the <freetext> node
@@ -204,7 +216,8 @@ public class PrepareSdk {
 
             // Create the element in PACE_Config.xml under configOnPage
             Element activityNode = config.createElement("Activity");
-            activityNode.setAttribute("Type", "Blank");
+            activityNode.setAttribute("type", "Blank");
+            activityNode.setAttribute("id", id.toString());
             activityNode.setAttribute("x1", dimens[0]);
             activityNode.setAttribute("y1", dimens[1]);
             activityNode.setAttribute("x2", dimens[2]);

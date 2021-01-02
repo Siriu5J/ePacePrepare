@@ -7,9 +7,10 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.Pagination?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -24,7 +25,7 @@
 
 <BorderPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="faith.samueljiang.epaceprepare.MainController">
    <top>
-      <MenuBar BorderPane.alignment="CENTER">
+      <MenuBar fx:id="topPane" BorderPane.alignment="CENTER">
         <menus>
           <Menu fx:id="menuBarFile" mnemonicParsing="false" text="%ui.menu.file">
             <items>
@@ -70,7 +71,7 @@
       </MenuBar>
    </top>
    <bottom>
-      <HBox alignment="CENTER_LEFT" spacing="5.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="CENTER">
+      <HBox fx:id="bottomPane" alignment="CENTER_LEFT" spacing="5.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="CENTER">
          <children>
             <Label fx:id="leftLabel" maxHeight="1.7976931348623157E308" text="Label" textFill="#9f9f9f" HBox.hgrow="ALWAYS">
                <font>
@@ -92,6 +93,20 @@
    <left>
       <VBox fx:id="leftPane" alignment="TOP_CENTER" minWidth="250.0" prefWidth="250.0" style="-fx-border-width: 0 1 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="TOP_CENTER">
          <children>
+            <HBox style="-fx-background-color: EEEEEE; -fx-border-color: LIGHTGREY; -fx-border-width: 1 1 0 1;">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="%ui.page.outline">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </Text>
+                  <Pane HBox.hgrow="ALWAYS" />
+                  <Button fx:id="deleteActivityButton" mnemonicParsing="false" style="-fx-background-color: LIGHTGREY; -fx-background-radius: 0;" />
+               </children>
+            </HBox>
             <TreeView fx:id="projectTree" VBox.vgrow="ALWAYS" />
             <GridPane alignment="CENTER" maxHeight="150.0" minHeight="150.0" prefHeight="150.0" style="-fx-background-color: WHITE; -fx-border-width: 1; -fx-border-color: LIGHTGREY;" VBox.vgrow="ALWAYS">
               <columnConstraints>
@@ -164,16 +179,6 @@
          </opaqueInsets>
       </VBox>
    </left>
-   <center>
-      <StackPane style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
-         <children>
-            <Pagination fx:id="pdfView" pageCount="10" style="-fx-background-color: GREY;" />
-         </children>
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
-      </StackPane>
-   </center>
    <right>
       <AnchorPane fx:id="rightPane" prefWidth="200.0" style="-fx-border-width: 0 0 0 1;" BorderPane.alignment="CENTER">
          <children>
@@ -223,4 +228,55 @@
          </children>
       </AnchorPane>
    </right>
+   <center>
+      <GridPane fx:id="centerPane" style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints valignment="TOP" vgrow="ALWAYS" />
+          <RowConstraints valignment="CENTER" />
+        </rowConstraints>
+         <children>
+            <HBox fx:id="PDFToolBar" prefHeight="50.0" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+               <children>
+                  <Pane HBox.hgrow="ALWAYS" />
+                  <Button fx:id="PDFPreviousButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#PDFPreviousButtonClick" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: LIGHTGREY;" text="&lt;">
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </Button>
+                  <TextField fx:id="PDFPageJump" alignment="CENTER" onAction="#PDFPageJumpAction" prefHeight="27.0" prefWidth="37.0">
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="12.0" />
+                     </HBox.margin>
+                  </TextField>
+                  <Text fx:id="PDFTotalPage" strokeType="OUTSIDE" strokeWidth="0.0" text="/ XX">
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets bottom="5.0" right="5.0" top="15.0" />
+                     </HBox.margin>
+                  </Text>
+                  <Button fx:id="PDFNextButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#PDFNextButtonClick" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: LIGHTGREY;" text="&gt;">
+                     <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Pane HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <AnchorPane fx:id="PDFAnchor" style="-fx-background-color: BLUE;" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
+               <children>
+                  <StackPane fx:id="PDFStack" style="-fx-background-color: GREEN;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <ImageView fx:id="PDFView" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
+                     </children>
+                  </StackPane>
+               </children>
+            </AnchorPane>
+         </children>
+      </GridPane>
+   </center>
 </BorderPane>

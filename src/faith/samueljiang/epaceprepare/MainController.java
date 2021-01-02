@@ -13,18 +13,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -34,13 +32,14 @@ public class MainController implements Initializable {
     private PrepareSdk prepareSdk;
     private FileHandler fileHandler;
     private Stage currentStage;
+    private SVGLibrary svgLib;
 
     // Project Related Variables
     private ePACEProject project;
     private String currentProjectPath;
-    private int currentPage;
-    private PDFModel pdfModel;
-    private PdfViewPaginationCallback callback;
+    private Integer currentPage;
+    private PDFControl control;
+    private Element openedElement;
 
     // Tools Selection; this shows the tools selected
     // 0 means non selected
@@ -48,6 +47,9 @@ public class MainController implements Initializable {
 
     @FXML // fx:id="mainPane"
     private BorderPane mainPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="topPane"
+    private MenuBar topPane; // Value injected by FXMLLoader
 
     @FXML // fx:id="menuBarFile"
     private Menu menuBarFile; // Value injected by FXMLLoader
@@ -109,6 +111,9 @@ public class MainController implements Initializable {
     @FXML // fx:id="menuAbout"
     private MenuItem menuAbout; // Value injected by FXMLLoader
 
+    @FXML // fx:id="bottomPane"
+    private HBox bottomPane; // Value injected by FXMLLoader
+
     @FXML // fx:id="leftLabel"
     private Label leftLabel; // Value injected by FXMLLoader
 
@@ -117,6 +122,9 @@ public class MainController implements Initializable {
 
     @FXML // fx:id="leftPane"
     private VBox leftPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="deleteActivityButton"
+    private Button deleteActivityButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="projectTree"
     private TreeView<?> projectTree; // Value injected by FXMLLoader
@@ -141,9 +149,6 @@ public class MainController implements Initializable {
 
     @FXML // fx:id="toolsCDict"
     private Button toolsCDict; // Value injected by FXMLLoader
-
-    @FXML // fx:id="pdfView"
-    private Pagination pdfView; // Value injected by FXMLLoader
 
     @FXML // fx:id="rightPane"
     private AnchorPane rightPane; // Value injected by FXMLLoader
@@ -172,23 +177,45 @@ public class MainController implements Initializable {
     @FXML // fx:id="ppPagePT"
     private MenuItem ppPagePT; // Value injected by FXMLLoader
 
+    @FXML // fx:id="centerPane"
+    private GridPane centerPane; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFToolBar"
+    private HBox PDFToolBar; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFPreviousButton"
+    private Button PDFPreviousButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFPageJump"
+    private TextField PDFPageJump; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFTotalPage"
+    private Text PDFTotalPage; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFNextButton"
+    private Button PDFNextButton; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFAnchor"
+    private AnchorPane PDFAnchor; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFStack"
+    private StackPane PDFStack; // Value injected by FXMLLoader
+
+    @FXML // fx:id="PDFView"
+    private ImageView PDFView; // Value injected by FXMLLoader
+
 
     @FXML
     void hideRightPane(ActionEvent event) {
         rightPane.setVisible(false);
         rightPane.setManaged(false);
         projectTree.getSelectionModel().clearSelection();
-        callback.setPdfFit(currentStage.getHeight(), leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
     }
 
 
     @FXML
     void newProject(ActionEvent event) {
         // TODO: Handle open new project
-        // Close the PDF if there is an opened document
-        if (pdfModel != null) {
-            pdfModel.closePDF();
-        }
 
         // Open create project window
         try {
@@ -227,15 +254,11 @@ public class MainController implements Initializable {
 
     @FXML
     void openProject(ActionEvent event) {
-        // Close the PDF if there is an opened document
-        if (pdfModel != null) {
-            pdfModel.closePDF();
-        }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("OpenProjectDialog.fxml"));
             loader.setResources(localeResource);
-            Parent parent = (Parent) loader.load();
+            Parent parent = loader.load();
 
             // Pass project object to window controller
             OpenProjectDialogController opdc = loader.getController();
@@ -257,9 +280,6 @@ public class MainController implements Initializable {
 
             if (!isSameProject(project.getProjectPath())) {
                 if (hasOpenProject()) {
-                    // TODO: Fix loading not showing
-                    // Set right label to loading project
-                    rightLabel.setText(localeResource.getString("ui.loading.project"));
                     initPane();
                 }
             }
@@ -275,6 +295,59 @@ public class MainController implements Initializable {
 
 
     private boolean isSameProject(String newPath) {return newPath.equals(currentProjectPath);}
+
+
+    @FXML
+    void PDFNextButtonClick(ActionEvent event) {
+        currentPage = (currentPage < control.getNumPages()) ? currentPage + 1 : control.getNumPages();
+        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
+
+        PDFPageJump.setText(currentPage.toString());
+
+        PDFView.setImage(control.getPage(currentPage));
+        control.bufferImage(currentPage);
+        fixPDFPaneSize(true, currentStage.getHeight());
+        populateTreeView();
+    }
+
+    @FXML
+    void PDFPageJumpAction(ActionEvent event) {
+        Integer toPage = currentPage;
+        try {
+            toPage = Integer.parseInt(PDFPageJump.getText());
+            if (toPage < 1) {
+                toPage = 1;
+                PDFPageJump.setText(toPage.toString());
+            } else if (toPage > control.getNumPages()) {
+                toPage = control.getNumPages();
+                PDFPageJump.setText(toPage.toString());
+            }
+        } catch (Exception e) {
+            // User did not type in a number
+            PDFPageJump.setText(currentPage.toString());
+        }
+
+        this.currentPage = toPage;
+        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
+
+        PDFView.setImage(control.getPage(currentPage));
+        control.bufferImage(currentPage);
+        fixPDFPaneSize(true, currentStage.getHeight());
+        populateTreeView();
+    }
+
+    @FXML
+    void PDFPreviousButtonClick(ActionEvent event) {
+        currentPage = (currentPage > 1) ? currentPage - 1 : 1;
+        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
+
+        PDFPageJump.setText(currentPage.toString());
+
+        PDFView.setImage(control.getPage(currentPage));
+        control.bufferImage(currentPage);
+        fixPDFPaneSize(true, currentStage.getHeight());
+        populateTreeView();
+    }
 
 
     private void initPane() {
@@ -297,14 +370,12 @@ public class MainController implements Initializable {
 
         displayPDFPage();
 
-        // Add listener for height change (only on resize complete)
-        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixHeightChange(newVal.doubleValue()));
+        // Add listener for height and width change on the PDFStack
+        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixPDFPaneSize(true, newVal.doubleValue()));
+        currentStage.widthProperty().addListener((obs, oldVal, newVal) -> fixPDFPaneSize(false, newVal.doubleValue()));
 
         // Set bottom left label to path
         leftLabel.setText("(" + project.getProjectName() + ") " + project.getProjectPath());
-
-        // Reset bottom right label to done
-        rightLabel.setText(localeResource.getString("ui.done"));
 
         // Set window title to include the project name
         currentStage.setTitle(localeResource.getString("program.name") + " " + ePacePrepare.version + " | " + project.getProjectName());
@@ -313,87 +384,123 @@ public class MainController implements Initializable {
 
     private void populateConfigWithInfo() {
         File pdfFile = project.getPdfFile();
-        pdfModel = new PDFModel(pdfFile);
+        this.control = new PDFControl(pdfFile, localeResource, rightLabel);
         File config = project.getConfigFile();
-        Integer numberOfPages = pdfModel.pdf.getNumberOfPages();
+        Integer numberOfPages = control.getNumPages();
 
-        // Loop through the
-            fileHandler.initConfigFilePages(config, numberOfPages);
-            try {
-                fileHandler.updateXMLNode(config, "TotalPages", "", numberOfPages.toString());
-            } catch (Exception e) {
-                System.err.println("Error while recording Total Pages.\n" + e.toString());
-            }
-            // Update the property
-            fileHandler.setProperty(project.getProjectPath(), "config_populated", "1");
+        fileHandler.initConfigFilePages(config, numberOfPages);
+        try {
+            fileHandler.updateXMLNode(config, "TotalPages", "", numberOfPages.toString());
+        } catch (Exception e) {
+            System.err.println("Error while recording Total Pages.\n" + e.toString());
+        }
+        // Update the property
+        fileHandler.setProperty(project.getProjectPath(), "config_populated", "1");
     }
 
 
     private void populateTreeView() {
-        File config = project.getConfigFile();
+        try {
+            // Get info from prepareSdk
+            Element pageElement = prepareSdk.getPageFromConfig(currentPage);
+            NodeList activities = pageElement.getChildNodes();
 
-        // Get Info
-        Node pageContent = fileHandler.getPageElements(config, String.valueOf(currentPage));
-        NodeList pageChildren = pageContent.getChildNodes();
+            // Transform element to TreeView
+            TreeItem rootItem = new TreeItem("Page " + pageElement.getAttributes().getNamedItem("id").getNodeValue());
+            rootItem.setExpanded(true);
 
-        // Transform info from Node to TreeView
-        TreeItem rootItem = new TreeItem("Page " + pageContent.getAttributes().getNamedItem("id").getNodeValue());
-        rootItem.setExpanded(true);
-        projectTree.setRoot(rootItem);
-        /*for (int i = 0; i < pageChildren.getLength(); i++) {
-            rootItem.getChildren().add(pageChildren.item(i).getNodeName());
-        }*/
+            projectTree.setRoot(rootItem);
 
-        // Set Event Handler
-        projectTree.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {   // This fixes the exception occurred when the minimize button is clicked on the side pane
-                if (newVal.getParent() == null) {   // selected value is a root (i.e. the page node)
-                    rightPane.setVisible(true);
-                    rightPane.setManaged(true);
-                    propTitle.setText(localeResource.getString("ui.page.properties"));
-                    ppPageType.setManaged(true);
-                }
+            for (int i = 0; i < activities.getLength(); i++) {
+                // Skip the non-element nodes
+                if (activities.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+
+                // Skip things that aren't activity
+                if (!activities.item(i).getNodeName().equals("Activity")) continue;
+
+                // Each activity becomes a leaf node
+                Element activity = (Element) activities.item(i);
+                String blank = activity.getAttribute("type");
+                String value = activity.getAttribute("value");
+                String id = activity.getAttribute("id");
+                TreeItem childItem = new TreeItem("(id=\"" + id + "\") " + localeResource.getString(blank) + ": " + value);
+
+                rootItem.getChildren().add(childItem);
             }
-        });
+
+            // Set Event Handler
+            projectTree.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {   // This fixes the exception occurred when the minimize button is clicked on the side pane
+                    if (newVal.getParent() == null) {   // selected value is a root (i.e. the page node)
+                        rightPane.setVisible(true);
+                        rightPane.setManaged(true);
+                        propTitle.setText(localeResource.getString("ui.page.properties"));
+                        ppPageType.setManaged(true);
+                    } else {    // Those are leaves
+                        // Set the right pane visible
+                        rightPane.setVisible(true);
+                        rightPane.setManaged(true);
+                        propTitle.setText(localeResource.getString("ui.activity.properties"));
+                        ppPageType.setManaged(false);
+                        ppPageType.setVisible(false);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            e.toString();
+        }
+
     }
 
 
     private void displayPDFPage() {
-        File pdfFile = project.getPdfFile();
-        this.pdfModel = new PDFModel(pdfFile);
+        // Initialize PDFControl if necessary
+        if (this.control == null) {
+            File pdfFile = project.getPdfFile();
+            this.control = new PDFControl(pdfFile, localeResource, rightLabel);
+        }
 
-        // Initialize PDF pagination
-        this.callback = new PdfViewPaginationCallback(pdfModel, currentStage.getHeight());
-        pdfView.setManaged(true);
-        pdfView.setPageCount(pdfModel.numPages());
-        pdfView.setPageFactory(index -> this.callback.call(index));
-        pdfView.setCurrentPageIndex(currentPage - 1);
-        pdfView.currentPageIndexProperty().addListener((obs, oldIndex, newIndex) -> pageControl(newIndex.intValue()));
-        pageControl(currentPage - 1);
-    }
+        PDFView.setImage(control.getPage(currentPage));
+        control.bufferImage(currentPage);
 
+        // Set the total pages on the control field
+        PDFTotalPage.setText("/ " + control.getNumPages());
+        PDFPageJump.setText(Integer.toString(currentPage));
 
-    private void pageControl(Integer index) {
-        long start = System.nanoTime();
-        fileHandler.setProperty(project.getProjectPath(), "working_page", String.valueOf(index + 1));
-        this.currentPage = index + 1;
-
-        // Make sure the new height is valid
-        fixHeightChange(currentStage.getHeight());
+        // Set the height
+        fixPDFPaneSize(true, currentStage.getHeight());
 
         // Populate the tree view
         populateTreeView();
-        long end = System.nanoTime();
-        System.out.println("PageControl Time: " + ((end - start) / 1000000000.00));
     }
 
 
-    private void fixHeightChange(Double height) {
-        if (hasOpenProject()) {
-            if (project.getPdfFile() != null) {
-                callback.setPdfFit(height, leftPane.getWidth(), rightPane.getWidth(), currentStage.getWidth());
-            }
+    private void fixPDFPaneSize(boolean isHeight, double value) {
+        // Enlarge the PDF to it's max allowed size
+        double stackHeight, stackWidth, lPaneWidth, rPaneWidth, tPaneHeight, bPaneHeight;
+        if (isHeight) {
+            stackHeight = value - 150;
+            stackWidth = PDFStack.getWidth();
+        } else {
+            lPaneWidth = leftPane.getWidth();
+            rPaneWidth = rightPane.getWidth();
+            stackHeight = PDFStack.getHeight();
+            stackWidth = value - (lPaneWidth + rPaneWidth + 20);
         }
+
+        double pdfImageRatio = PDFView.getImage().getHeight() / PDFView.getImage().getWidth();
+
+        // Choose to anchor to stackHeight or stackWidth while prioritizing anchoring to stackHeight
+        if (stackHeight / pdfImageRatio < stackWidth) {
+            PDFStack.setPrefHeight(stackHeight);
+            PDFView.setFitHeight(stackHeight);
+        } else if (stackWidth * pdfImageRatio < stackHeight) {
+            PDFStack.setPrefWidth(stackWidth);
+            PDFView.setFitWidth(stackWidth);
+        }
+
+        // Preserve ratio
+        PDFView.setPreserveRatio(true);
     }
 
 
@@ -422,6 +529,8 @@ public class MainController implements Initializable {
         } catch (NoSuchFieldException e) {
             System.err.println(e.toString());
         }
+
+        populateTreeView();
     }
 
     @FXML
@@ -432,6 +541,8 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             System.err.println(e.toString());
         }
+
+        populateTreeView();
     }
 
     @FXML
@@ -602,6 +713,10 @@ public class MainController implements Initializable {
             toolsCCalli.setDisable(true);
             toolsCMultiple.setDisable(true);
             toolsCConnect.setDisable(true);
+
+            deleteActivityButton.setDisable(true);
+
+            PDFToolBar.setDisable(true);
         } else {
             menuAddPdf.setDisable(false);
             menuAddAnnot.setDisable(false);
@@ -619,6 +734,10 @@ public class MainController implements Initializable {
             toolsCCalli.setDisable(false);
             toolsCMultiple.setDisable(false);
             toolsCConnect.setDisable(false);
+
+            deleteActivityButton.setDisable(false);
+
+            PDFToolBar.setDisable(false);
         }
     }
 
@@ -628,58 +747,29 @@ public class MainController implements Initializable {
         this.localeResource = resources;
         this.fileHandler = new FileHandler();
         this.project = new ePACEProject();
+        this.svgLib = new SVGLibrary();
 
         // Fill the images to the tool buttons
-        Image toolsBlank = new Image("/asset/tools-blank.png", 30, 30, false, false);
-        ImageView toolsBlankView = new ImageView(toolsBlank);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCBlank.setGraphic(toolsBlankView);
+        toolsCBlank.setGraphic(svgLib.getSVG(SVGImage.BLANK, Color.BLACK, 1.0, 1.0));
+        toolsCMultiple.setGraphic(svgLib.getSVG(SVGImage.MULTISELECT, Color.BLACK, 1.0, 1.0));
+        toolsCConnect.setGraphic(svgLib.getSVG(SVGImage.CONNECT, Color.BLACK, 1.0, 1.0));
+        toolsCCalli.setGraphic(svgLib.getSVG(SVGImage.CALLIGRAPHY, Color.BLACK, 1.0, 1.0));
+        toolsCStrip.setGraphic(svgLib.getSVG(SVGImage.SCORESTRIP, Color.BLACK, 1.0, 1.0));
+        toolsCDict.setGraphic(svgLib.getSVG(SVGImage.DICTATION, Color.BLACK, 1.0, 1.0));
+        toolsCErase.setGraphic(svgLib.getSVG(SVGImage.ERASER, Color.BLACK, 1.1, 1.1));
 
-        Image toolsMulti = new Image("/asset/tools-multi.png", 30, 30, false, false);
-        ImageView toolsMultiView = new ImageView(toolsMulti);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCMultiple.setGraphic(toolsMultiView);
-
-        Image toolsConnect = new Image("/asset/tools-connect.png", 30, 30, false, false);
-        ImageView toolsConnectView = new ImageView(toolsConnect);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCConnect.setGraphic(toolsConnectView);
-
-        Image toolsCalli= new Image("/asset/tools-calli.png", 30, 30, false, false);
-        ImageView toolsCalliView = new ImageView(toolsCalli);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCCalli.setGraphic(toolsCalliView);
-
-        Image toolsStrip = new Image("/asset/tools-strip.png", 30, 30, false, false);
-        ImageView toolsStripView = new ImageView(toolsStrip);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCStrip.setGraphic(toolsStripView);
-
-        Image toolsDict = new Image("/asset/tools-dict.png", 30, 30, false, false);
-        ImageView toolsDictView = new ImageView(toolsDict);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCDict.setGraphic(toolsDictView);
-
-        Image toolsEraser = new Image("/asset/tools-eraser.png", 30, 30, false, false);
-        ImageView toolsEraserView = new ImageView(toolsEraser);
-        toolsBlankView.setFitHeight(30);
-        toolsBlankView.setPreserveRatio(true);
-        toolsCErase.setGraphic(toolsEraserView);
+        // Fill image to the delete button
+        deleteActivityButton.setGraphic(svgLib.getSVG(SVGImage.DELETE, Color.DARKGRAY, 0.83, 0.83));
+        
+        // Fill the PDF toolbar icons
+        PDFPreviousButton.setGraphic(svgLib.getSVG(SVGImage.PREVIOUS, Color.DARKGRAY, 1.0, 1.0));
+        PDFNextButton.setGraphic(svgLib.getSVG(SVGImage.NEXT, Color.DARKGRAY, 1.0, 1.0));
 
         // Tools set
         toolSelect = 0;
 
         // Set right pane width
-        rightPane.setMinWidth(190);
-
-        // Hide pagination on start
-        pdfView.setManaged(false);
+        rightPane.setPrefWidth(200);
 
         // Default project set to ""
         currentProjectPath = "";
