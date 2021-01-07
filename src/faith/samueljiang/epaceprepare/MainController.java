@@ -11,8 +11,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -23,8 +21,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainController implements Initializable {
 
@@ -33,6 +34,7 @@ public class MainController implements Initializable {
     private FileHandler fileHandler;
     private Stage currentStage;
     private SVGLibrary svgLib;
+    private PDFDisplayPane pdfDisplayPane;
 
     // Project Related Variables
     private ePACEProject project;
@@ -127,7 +129,7 @@ public class MainController implements Initializable {
     private Button deleteActivityButton; // Value injected by FXMLLoader
 
     @FXML // fx:id="projectTree"
-    private TreeView<?> projectTree; // Value injected by FXMLLoader
+    private TreeView<String> projectTree; // Value injected by FXMLLoader
 
     @FXML // fx:id="toolsCErase"
     private Button toolsCErase; // Value injected by FXMLLoader
@@ -177,40 +179,47 @@ public class MainController implements Initializable {
     @FXML // fx:id="ppPagePT"
     private MenuItem ppPagePT; // Value injected by FXMLLoader
 
-    @FXML // fx:id="centerPane"
-    private GridPane centerPane; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityValue"
+    private HBox ppActivityValue; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFToolBar"
-    private HBox PDFToolBar; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityValueField"
+    private TextField ppActivityValueField; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFPreviousButton"
-    private Button PDFPreviousButton; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityCoord"
+    private Text ppActivityCoord; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFPageJump"
-    private TextField PDFPageJump; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityX1"
+    private HBox ppActivityX1; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFTotalPage"
-    private Text PDFTotalPage; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityX1Spinner"
+    private Spinner<Double> ppActivityX1Spinner; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFNextButton"
-    private Button PDFNextButton; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityY1"
+    private HBox ppActivityY1; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFAnchor"
-    private AnchorPane PDFAnchor; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityY1Spinner"
+    private Spinner<Double> ppActivityY1Spinner; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFStack"
-    private StackPane PDFStack; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityX2"
+    private HBox ppActivityX2; // Value injected by FXMLLoader
 
-    @FXML // fx:id="PDFView"
-    private ImageView PDFView; // Value injected by FXMLLoader
+    @FXML // fx:id="ppActivityX2Spinner"
+    private Spinner<Double> ppActivityX2Spinner; // Value injected by FXMLLoader
 
+    @FXML // fx:id="ppActivityY2"
+    private HBox ppActivityY2; // Value injected by FXMLLoader
 
-    @FXML
-    void hideRightPane(ActionEvent event) {
-        rightPane.setVisible(false);
-        rightPane.setManaged(false);
-        projectTree.getSelectionModel().clearSelection();
-    }
+    @FXML // fx:id="ppActivityY2Spinner"
+    private Spinner<Double> ppActivityY2Spinner; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppActivityRotation"
+    private HBox ppActivityRotation; // Value injected by FXMLLoader
+
+    @FXML // fx:id="ppActivityRotationSpinner"
+    private Spinner<Double> ppActivityRotationSpinner; // Value injected by FXMLLoader
+
+    @FXML // fx:id="pdfViewAnchor"
+    private AnchorPane pdfViewAnchor; // Value injected by FXMLLoader
 
 
     @FXML
@@ -297,59 +306,6 @@ public class MainController implements Initializable {
     private boolean isSameProject(String newPath) {return newPath.equals(currentProjectPath);}
 
 
-    @FXML
-    void PDFNextButtonClick(ActionEvent event) {
-        currentPage = (currentPage < control.getNumPages()) ? currentPage + 1 : control.getNumPages();
-        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
-
-        PDFPageJump.setText(currentPage.toString());
-
-        PDFView.setImage(control.getPage(currentPage));
-        control.bufferImage(currentPage);
-        fixPDFPaneSize(true, currentStage.getHeight());
-        populateTreeView();
-    }
-
-    @FXML
-    void PDFPageJumpAction(ActionEvent event) {
-        Integer toPage = currentPage;
-        try {
-            toPage = Integer.parseInt(PDFPageJump.getText());
-            if (toPage < 1) {
-                toPage = 1;
-                PDFPageJump.setText(toPage.toString());
-            } else if (toPage > control.getNumPages()) {
-                toPage = control.getNumPages();
-                PDFPageJump.setText(toPage.toString());
-            }
-        } catch (Exception e) {
-            // User did not type in a number
-            PDFPageJump.setText(currentPage.toString());
-        }
-
-        this.currentPage = toPage;
-        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
-
-        PDFView.setImage(control.getPage(currentPage));
-        control.bufferImage(currentPage);
-        fixPDFPaneSize(true, currentStage.getHeight());
-        populateTreeView();
-    }
-
-    @FXML
-    void PDFPreviousButtonClick(ActionEvent event) {
-        currentPage = (currentPage > 1) ? currentPage - 1 : 1;
-        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
-
-        PDFPageJump.setText(currentPage.toString());
-
-        PDFView.setImage(control.getPage(currentPage));
-        control.bufferImage(currentPage);
-        fixPDFPaneSize(true, currentStage.getHeight());
-        populateTreeView();
-    }
-
-
     private void initPane() {
         // Create the page info in config if necessary
         if (fileHandler.getProperty(project.getProjectPath(), "config_populated").equals("0")) {
@@ -371,8 +327,8 @@ public class MainController implements Initializable {
         displayPDFPage();
 
         // Add listener for height and width change on the PDFStack
-        currentStage.heightProperty().addListener((obs, oldVal, newVal) -> fixPDFPaneSize(true, newVal.doubleValue()));
-        currentStage.widthProperty().addListener((obs, oldVal, newVal) -> fixPDFPaneSize(false, newVal.doubleValue()));
+        //currentStage.heightProperty().addListener((obs, oldVal, newVal) -> pdfDisplayPane.fixSize(true, rightPane.isVisible(), newVal.doubleValue()));
+        //currentStage.widthProperty().addListener((obs, oldVal, newVal) -> pdfDisplayPane.fixSize(false, rightPane.isVisible(), newVal.doubleValue()));
 
         // Set bottom left label to path
         leftLabel.setText("(" + project.getProjectName() + ") " + project.getProjectPath());
@@ -399,57 +355,14 @@ public class MainController implements Initializable {
     }
 
 
-    private void populateTreeView() {
-        try {
-            // Get info from prepareSdk
-            Element pageElement = prepareSdk.getPageFromConfig(currentPage);
-            NodeList activities = pageElement.getChildNodes();
+    public void onPageChange(Integer page) {
+        currentPage = page;
+        fileHandler.setProperty(project.getProjectPath(), "working_page", currentPage.toString());
 
-            // Transform element to TreeView
-            TreeItem rootItem = new TreeItem("Page " + pageElement.getAttributes().getNamedItem("id").getNodeValue());
-            rootItem.setExpanded(true);
-
-            projectTree.setRoot(rootItem);
-
-            for (int i = 0; i < activities.getLength(); i++) {
-                // Skip the non-element nodes
-                if (activities.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
-
-                // Skip things that aren't activity
-                if (!activities.item(i).getNodeName().equals("Activity")) continue;
-
-                // Each activity becomes a leaf node
-                Element activity = (Element) activities.item(i);
-                String blank = activity.getAttribute("type");
-                String value = activity.getAttribute("value");
-                String id = activity.getAttribute("id");
-                TreeItem childItem = new TreeItem("(id=\"" + id + "\") " + localeResource.getString(blank) + ": " + value);
-
-                rootItem.getChildren().add(childItem);
-            }
-
-            // Set Event Handler
-            projectTree.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal != null) {   // This fixes the exception occurred when the minimize button is clicked on the side pane
-                    if (newVal.getParent() == null) {   // selected value is a root (i.e. the page node)
-                        rightPane.setVisible(true);
-                        rightPane.setManaged(true);
-                        propTitle.setText(localeResource.getString("ui.page.properties"));
-                        ppPageType.setManaged(true);
-                    } else {    // Those are leaves
-                        // Set the right pane visible
-                        rightPane.setVisible(true);
-                        rightPane.setManaged(true);
-                        propTitle.setText(localeResource.getString("ui.activity.properties"));
-                        ppPageType.setManaged(false);
-                        ppPageType.setVisible(false);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            e.toString();
-        }
-
+        pdfDisplayPane.setPdfView(control.getPage(currentPage));
+        //pdfDisplayPane.fixSize(true,rightPane.isVisible(), currentStage.getHeight());
+        populateActivities();
+        control.bufferImage(currentPage);
     }
 
 
@@ -460,48 +373,295 @@ public class MainController implements Initializable {
             this.control = new PDFControl(pdfFile, localeResource, rightLabel);
         }
 
-        PDFView.setImage(control.getPage(currentPage));
-        control.bufferImage(currentPage);
+        pdfDisplayPane.setCurrentPage(currentPage);
+        pdfDisplayPane.setPdfView(control.getPage(currentPage));
 
         // Set the total pages on the control field
-        PDFTotalPage.setText("/ " + control.getNumPages());
-        PDFPageJump.setText(Integer.toString(currentPage));
+        pdfDisplayPane.setTotalPages(control.getNumPages());
+        pdfDisplayPane.setPageNoJump(Integer.toString(currentPage));
 
         // Set the height
-        fixPDFPaneSize(true, currentStage.getHeight());
+        //pdfDisplayPane.fixSize(true, rightPane.isVisible(), currentStage.getHeight());
+        pdfDisplayPane.initSize();
 
         // Populate the tree view
-        populateTreeView();
+        populateActivities();
+
+        control.bufferImage(currentPage);
     }
 
 
-    private void fixPDFPaneSize(boolean isHeight, double value) {
-        // Enlarge the PDF to it's max allowed size
-        double stackHeight, stackWidth, lPaneWidth, rPaneWidth, tPaneHeight, bPaneHeight;
-        if (isHeight) {
-            stackHeight = value - 150;
-            stackWidth = PDFStack.getWidth();
+    private void populateActivities() {
+        try {
+            // Get info from prepareSdk
+            Element pageElement = prepareSdk.getPageFromConfig(currentPage);
+            openedElement = pageElement;
+            NodeList activities = pageElement.getChildNodes();
+
+            // Clear the activities list
+            pdfDisplayPane.clearActivities();
+
+            // Transform element to TreeView
+            String pageNumber = pageElement.getAttributes().getNamedItem("id").getNodeValue();
+            String pageType = pageElement.getChildNodes().item(1).getTextContent();
+            String pageTypeToLocale = pageType.equals("") ? localeResource.getString("ui.unknown") : localeResource.getString(pageType);
+            TreeItem<String> rootItem = new TreeItem<>("Page " + pageNumber + "（" + pageTypeToLocale + "）");
+            rootItem.setExpanded(true);
+
+            projectTree.setRoot(rootItem);
+
+            // Add the activities to the TreeView and to the PDFDisplayPane
+            for (int i = 0; i < activities.getLength(); i++) {
+                // Skip the non-element nodes
+                if (activities.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+
+                // Skip things that aren't activity
+                if (!activities.item(i).getNodeName().equals("Activity")) continue;
+
+                // Each activity becomes a leaf node
+                Element activity = (Element) activities.item(i);
+                String type = activity.getAttribute("type");
+                String value = activity.getAttribute("value");
+                String id = activity.getAttribute("id");
+                TreeItem<String> childItem = new TreeItem<>("(id=\"" + id + "\") " + localeResource.getString(type) + ": " + value);
+
+                // Add to the PDFDisplayPane
+                Double x1 = Double.parseDouble(activity.getAttribute("x1"));
+                Double y1 = Double.parseDouble(activity.getAttribute("y1"));
+                Double x2 = Double.parseDouble(activity.getAttribute("x2"));
+                Double y2 = Double.parseDouble(activity.getAttribute("y2"));
+                pdfDisplayPane.addActivity(x1, y1, x2, y2, type, id, value);
+
+                // Add to the tree
+                rootItem.getChildren().add(childItem);
+            }
+
+            // Set Event Handler
+            projectTree.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {   // This fixes the exception occurred when the minimize button is clicked on the side pane
+                    // Recalculate width with right pane open
+                    //pdfDisplayPane.fixSize(false, true, currentStage.getWidth());
+
+                    if (newVal.getParent() == null) {   // selected value is a root (i.e. the page node)
+                        // Set Right Pane visibility
+                        setRightPaneVisibility(true, false);
+                        propTitle.setText(localeResource.getString("ui.page.properties"));
+
+                        // Set option defaults
+                        if (pageTypeToLocale.equals(localeResource.getString("ui.unknown"))) {
+                            ppPageTypeBox.setText(localeResource.getString("ui.page.type.not.selected"));
+                        } else {
+                            ppPageTypeBox.setText(pageTypeToLocale);
+                        }
+                    } else {    // Those are leaves
+                        // Parse the id
+                        String selectedId = newVal.getValue();
+                        Pattern p = Pattern.compile("\"([^\"]*)\"");
+                        Matcher m = p.matcher(selectedId);
+                        while (m.find()) {
+                            selectedId = m.group(1);
+                        }
+
+                        // Get the activity node
+                        Element selectedActivity = null;
+                        for (int i = 0; i < activities.getLength(); i++) {
+                            // Skip the non-element nodes
+                            if (activities.item(i).getNodeType() != Node.ELEMENT_NODE) continue;
+
+                            // Skip things that aren't activity
+                            if (!activities.item(i).getNodeName().equals("Activity")) continue;
+
+                            Element activity = (Element) activities.item(i);
+                            if (activity.getAttribute("id").equals(selectedId)) {
+                                selectedActivity = activity;
+                            }
+                        }
+
+                        // Set the right pane visible
+                        setRightPaneVisibility(false, false);
+                        assert selectedActivity != null;
+                        String type = selectedActivity.getAttribute("type");
+                        propTitle.setText(localeResource.getString("ui.activity.properties") + "（" + localeResource.getString(type)  + "）");
+
+                        // Initialize the pane values
+                        ppActivityValueField.setText(selectedActivity.getAttribute("value"));
+                        // Set the factory
+                        SpinnerValueFactory<Double> X1SpinnerFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, control.getPDFWidth(currentPage - 1), 0.1);
+                        SpinnerValueFactory<Double> X2SpinnerFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, control.getPDFWidth(currentPage - 1), 0.1);
+                        ppActivityX1Spinner.setValueFactory(X1SpinnerFactory);
+                        ppActivityX1Spinner.getValueFactory().setValue(Double.parseDouble(selectedActivity.getAttribute("x1")));
+                        ppActivityX2Spinner.setValueFactory(X2SpinnerFactory);
+                        ppActivityX2Spinner.getValueFactory().setValue(Double.parseDouble(selectedActivity.getAttribute("x2")));
+                        SpinnerValueFactory<Double> Y1SpinnerFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, control.getPDFHeight(currentPage - 1), 0.1);
+                        SpinnerValueFactory<Double> Y2SpinnerFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, control.getPDFHeight(currentPage - 1), 0.1);
+                        ppActivityY1Spinner.setValueFactory(Y1SpinnerFactory);
+                        ppActivityY1Spinner.getValueFactory().setValue(Double.parseDouble(selectedActivity.getAttribute("y1")));
+                        ppActivityY2Spinner.setValueFactory(Y2SpinnerFactory);
+                        ppActivityY2Spinner.getValueFactory().setValue(Double.parseDouble(selectedActivity.getAttribute("y2")));
+                    }
+                }
+            });
+        } catch (Exception e) {
+            System.err.println(e.toString());
+        }
+
+    }
+
+
+    @FXML
+    void hideRightPane() {
+        setRightPaneVisibility(false, true);
+        //pdfDisplayPane.fixSize(true, rightPane.isVisible(), currentStage.getHeight());
+        populateActivities();
+    }
+
+
+    private void setRightPaneVisibility(boolean isPageProp, boolean isClear) {
+        if (isClear) {
+            rightPane.setVisible(false);
+            rightPane.setManaged(false);
+            ppPageType.setVisible(false);
+            ppPageType.setManaged(false);
+            ppActivityValue.setVisible(false);
+            ppActivityValue.setManaged(false);
+            ppActivityCoord.setVisible(false);
+            ppActivityCoord.setManaged(false);
+            ppActivityX1.setVisible(false);
+            ppActivityX1.setManaged(false);
+            ppActivityY1.setVisible(false);
+            ppActivityY1.setManaged(false);
+            ppActivityX2.setVisible(false);
+            ppActivityX2.setManaged(false);
+            ppActivityY2.setVisible(false);
+            ppActivityY2.setManaged(false);
+            ppActivityRotation.setVisible(false);
+            ppActivityRotation.setManaged(false);
+
+            return;
+        }
+
+        rightPane.setVisible(true);
+        rightPane.setManaged(true);
+        if (isPageProp) {
+            ppPageType.setVisible(true);
+            ppPageType.setManaged(true);
+            ppActivityValue.setVisible(false);
+            ppActivityValue.setManaged(false);
+            ppActivityCoord.setVisible(false);
+            ppActivityCoord.setManaged(false);
+            ppActivityX1.setVisible(false);
+            ppActivityX1.setManaged(false);
+            ppActivityY1.setVisible(false);
+            ppActivityY1.setManaged(false);
+            ppActivityX2.setVisible(false);
+            ppActivityX2.setManaged(false);
+            ppActivityY2.setVisible(false);
+            ppActivityY2.setManaged(false);
+            ppActivityRotation.setVisible(false);
+            ppActivityRotation.setManaged(false);
         } else {
-            lPaneWidth = leftPane.getWidth();
-            rPaneWidth = rightPane.getWidth();
-            stackHeight = PDFStack.getHeight();
-            stackWidth = value - (lPaneWidth + rPaneWidth + 20);
+            ppPageType.setVisible(false);
+            ppPageType.setManaged(false);
+            ppActivityValue.setVisible(true);
+            ppActivityValue.setManaged(true);
+            ppActivityCoord.setVisible(true);
+            ppActivityCoord.setManaged(true);
+            ppActivityX1.setVisible(true);
+            ppActivityX1.setManaged(true);
+            ppActivityY1.setVisible(true);
+            ppActivityY1.setManaged(true);
+            ppActivityX2.setVisible(true);
+            ppActivityX2.setManaged(true);
+            ppActivityY2.setVisible(true);
+            ppActivityY2.setManaged(true);
+            ppActivityRotation.setVisible(true);
+            ppActivityRotation.setManaged(true);
         }
-
-        double pdfImageRatio = PDFView.getImage().getHeight() / PDFView.getImage().getWidth();
-
-        // Choose to anchor to stackHeight or stackWidth while prioritizing anchoring to stackHeight
-        if (stackHeight / pdfImageRatio < stackWidth) {
-            PDFStack.setPrefHeight(stackHeight);
-            PDFView.setFitHeight(stackHeight);
-        } else if (stackWidth * pdfImageRatio < stackHeight) {
-            PDFStack.setPrefWidth(stackWidth);
-            PDFView.setFitWidth(stackWidth);
-        }
-
-        // Preserve ratio
-        PDFView.setPreserveRatio(true);
     }
+
+
+    @FXML
+    void ppPageCUSelect(ActionEvent event) {
+        /*//
+    Set Text to menu
+        ppPageTypeBox.setText(ppPageCU.getText());
+        openedElement.getChildNodes().item(1).setTextContent("checkup");
+
+        // Refresh tree page title
+        String treeTitle = projectTree.getRoot().getValue();
+        String firstHalfOfTitle = treeTitle.substring(0, treeTitle.indexOf('（'));
+        projectTree.getRoot().setValue(firstHalfOfTitle + "（" + ppPageCU.getText() + "）");
+
+        // Save this node to PrepareSdk
+        try {
+            prepareSdk.setPageToConfig(currentPage, this.openedElement);
+        } catch (Exception e) {
+            System.err.println("Error while saving node");
+            e.printStackTrace();
+        }*/
+    }
+
+    @FXML
+    void ppPageNormalSelect(ActionEvent event) {
+        /*//Set Text to menu
+        ppPageTypeBox.setText(ppPageNormal.getText());
+        openedElement.getChildNodes().item(1).setTextContent("normal");
+
+        // Refresh tree page title
+        String treeTitle = projectTree.getRoot().getValue();
+        String firstHalfOfTitle = treeTitle.substring(0, treeTitle.indexOf('（'));
+        projectTree.getRoot().setValue(firstHalfOfTitle + "（" + ppPageNormal.getText() + "）");
+
+        // Save this node to PrepareSdk
+        try {
+            prepareSdk.setPageToConfig(currentPage, this.openedElement);
+        } catch (Exception e) {
+            System.err.println("Error while saving node");
+            e.printStackTrace();
+        }*/
+    }
+
+    @FXML
+    void ppPagePTSelect(ActionEvent event) {
+        /*//Set Text to menu
+        ppPageTypeBox.setText(ppPagePT.getText());
+        openedElement.getChildNodes().item(1).setTextContent("ptest");
+
+        // Refresh tree page title
+        String treeTitle = projectTree.getRoot().getValue();
+        String firstHalfOfTitle = treeTitle.substring(0, treeTitle.indexOf('（'));
+        projectTree.getRoot().setValue(firstHalfOfTitle + "（" + ppPagePT.getText() + "）");
+
+        // Save this node to PrepareSdk
+        try {
+            prepareSdk.setPageToConfig(currentPage, this.openedElement);
+        } catch (Exception e) {
+            System.err.println("Error while saving node");
+            e.printStackTrace();
+        }*/
+    }
+
+    @FXML
+    void ppPageSTSelect(ActionEvent event) {
+        /*//Set Text to menu
+        ppPageTypeBox.setText(ppPageST.getText());
+        openedElement.getChildNodes().item(1).setTextContent("selftest");
+
+        // Refresh tree page title
+        String treeTitle = projectTree.getRoot().getValue();
+        String firstHalfOfTitle = treeTitle.substring(0, treeTitle.indexOf('（'));
+        projectTree.getRoot().setValue(firstHalfOfTitle + "（" + ppPageST.getText() + "）");
+
+        // Save this node to PrepareSdk
+        try {
+            prepareSdk.setPageToConfig(currentPage, this.openedElement);
+        } catch (Exception e) {
+            System.err.println("Error while saving node");
+            e.printStackTrace();
+        }*/
+    }
+
+
 
 
     @FXML
@@ -530,7 +690,7 @@ public class MainController implements Initializable {
             System.err.println(e.toString());
         }
 
-        populateTreeView();
+        populateActivities();
     }
 
     @FXML
@@ -542,7 +702,7 @@ public class MainController implements Initializable {
             System.err.println(e.toString());
         }
 
-        populateTreeView();
+        populateActivities();
     }
 
     @FXML
@@ -665,31 +825,6 @@ public class MainController implements Initializable {
     }
 
 
-    @FXML
-    void ppPageCUSelect(ActionEvent event) {
-        //Set Text to menu
-        ppPageTypeBox.setText(ppPageCU.getText());
-    }
-
-    @FXML
-    void ppPageNormalSelect(ActionEvent event) {
-        //Set Text to menu
-        ppPageTypeBox.setText(ppPageNormal.getText());
-    }
-
-    @FXML
-    void ppPagePTSelect(ActionEvent event) {
-        //Set Text to menu
-        ppPageTypeBox.setText(ppPagePT.getText());
-    }
-
-    @FXML
-    void ppPageSTSelect(ActionEvent event) {
-        //Set Text to menu
-        ppPageTypeBox.setText(ppPageST.getText());
-    }
-
-
     public void setMainStage(Stage stage) {
         this.currentStage = stage;
     }
@@ -716,7 +851,7 @@ public class MainController implements Initializable {
 
             deleteActivityButton.setDisable(true);
 
-            PDFToolBar.setDisable(true);
+            pdfDisplayPane.setToolbarVisibility(true);
         } else {
             menuAddPdf.setDisable(false);
             menuAddAnnot.setDisable(false);
@@ -737,8 +872,20 @@ public class MainController implements Initializable {
 
             deleteActivityButton.setDisable(false);
 
-            PDFToolBar.setDisable(false);
+            pdfDisplayPane.setToolbarVisibility(false);
         }
+    }
+
+    public Stage getCurrentStage() {
+        return currentStage;
+    }
+
+    public Double getRightPaneWidth() {
+        if (rightPane.isVisible()) {
+            return 200.0;
+        }
+
+        return 0.0;
     }
 
 
@@ -748,6 +895,23 @@ public class MainController implements Initializable {
         this.fileHandler = new FileHandler();
         this.project = new ePACEProject();
         this.svgLib = new SVGLibrary();
+
+        // Initialize PDF display pane and set it to the center anchor pane
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("PDFDisplayPaneFragment.fxml"));
+        loader.setResources(localeResource);
+        try {
+            loader.load();
+        } catch (IOException e) {
+            System.err.println("Cannot load PDF Display Pane");
+            e.printStackTrace();
+        }
+        this.pdfDisplayPane = loader.getController();
+        pdfDisplayPane.setMainController(this);
+        pdfViewAnchor.getChildren().add(pdfDisplayPane.getPane());
+        AnchorPane.setTopAnchor(pdfDisplayPane.getPane(), 0.0);
+        AnchorPane.setBottomAnchor(pdfDisplayPane.getPane(), 0.0);
+        AnchorPane.setLeftAnchor(pdfDisplayPane.getPane(), 0.0);
+        AnchorPane.setRightAnchor(pdfDisplayPane.getPane(), 0.0);
 
         // Fill the images to the tool buttons
         toolsCBlank.setGraphic(svgLib.getSVG(SVGImage.BLANK, Color.BLACK, 1.0, 1.0));
@@ -760,10 +924,6 @@ public class MainController implements Initializable {
 
         // Fill image to the delete button
         deleteActivityButton.setGraphic(svgLib.getSVG(SVGImage.DELETE, Color.DARKGRAY, 0.83, 0.83));
-        
-        // Fill the PDF toolbar icons
-        PDFPreviousButton.setGraphic(svgLib.getSVG(SVGImage.PREVIOUS, Color.DARKGRAY, 1.0, 1.0));
-        PDFNextButton.setGraphic(svgLib.getSVG(SVGImage.NEXT, Color.DARKGRAY, 1.0, 1.0));
 
         // Tools set
         toolSelect = 0;
@@ -784,6 +944,7 @@ public class MainController implements Initializable {
         // Initialize the two labels at the bottom
         leftLabel.setText(localeResource.getString("ui.no.open.project"));
         rightLabel.setText(localeResource.getString("ui.done"));
+
 
         // TODO: Implement those features in future
         menuSettings.setVisible(false);

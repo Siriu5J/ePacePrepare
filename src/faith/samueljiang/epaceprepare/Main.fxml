@@ -8,9 +8,9 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -18,7 +18,6 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
@@ -71,7 +70,7 @@
       </MenuBar>
    </top>
    <bottom>
-      <HBox fx:id="bottomPane" alignment="CENTER_LEFT" spacing="5.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="CENTER">
+      <HBox fx:id="bottomPane" alignment="CENTER_LEFT" spacing="5.0" style="-fx-border-width: 1 0 0 0; -fx-border-color: LIGHTGREY;">
          <children>
             <Label fx:id="leftLabel" maxHeight="1.7976931348623157E308" text="Label" textFill="#9f9f9f" HBox.hgrow="ALWAYS">
                <font>
@@ -91,7 +90,7 @@
       </HBox>
    </bottom>
    <left>
-      <VBox fx:id="leftPane" alignment="TOP_CENTER" minWidth="250.0" prefWidth="250.0" style="-fx-border-width: 0 1 0 0; -fx-border-color: LIGHTGREY;" BorderPane.alignment="TOP_CENTER">
+      <VBox fx:id="leftPane" alignment="TOP_CENTER" minWidth="250.0" prefWidth="250.0" style="-fx-border-width: 0 1 0 0; -fx-border-color: LIGHTGREY;">
          <children>
             <HBox style="-fx-background-color: EEEEEE; -fx-border-color: LIGHTGREY; -fx-border-width: 1 1 0 1;">
                <children>
@@ -126,43 +125,43 @@
                   <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1">
                      <children>
                         <Button fx:id="toolsCErase" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCEraseClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.eraser" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%Eraser" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                      <children>
                         <Button fx:id="toolsCBlank" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCBlankClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: white; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.blank" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%Blank" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.columnIndex="1">
                      <children>
                         <Button fx:id="toolsCMultiple" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCMultpleClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.multiple" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%MultiChoice" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.columnIndex="2">
                      <children>
                         <Button fx:id="toolsCConnect" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCConnectClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.connect" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%Connect" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.columnIndex="3">
                      <children>
                         <Button fx:id="toolsCCalli" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCCalliClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.calli" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%Calligraphy" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.rowIndex="1">
                      <children>
                         <Button fx:id="toolsCStrip" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCStripClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.strip" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%ScoreStrip" />
                      </children>
                   </VBox>
                   <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1">
                      <children>
                         <Button fx:id="toolsCDict" alignment="CENTER" mnemonicParsing="false" onAction="#toolsCDictClick" prefHeight="50.0" prefWidth="50.0" style="-fx-background-color: WHITE; -fx-background-radius: 3;" />
-                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%tools.create.dict" />
+                        <Text fill="GREY" strokeType="OUTSIDE" strokeWidth="0.0" text="%Dictation" />
                      </children>
                   </VBox>
                </children>
@@ -180,7 +179,7 @@
       </VBox>
    </left>
    <right>
-      <AnchorPane fx:id="rightPane" prefWidth="200.0" style="-fx-border-width: 0 0 0 1;" BorderPane.alignment="CENTER">
+      <AnchorPane fx:id="rightPane" prefWidth="200.0" style="-fx-border-width: 0 0 0 1;">
          <children>
             <VBox fx:id="rightPaneVBox" maxWidth="190.0" minWidth="190.0" prefWidth="190.0" style="-fx-background-color: WHITE; -fx-border-width: 1; -fx-border-color: LIGHTGREY;" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
                <children>
@@ -212,12 +211,104 @@
                         <Pane HBox.hgrow="ALWAYS" />
                         <MenuButton fx:id="ppPageTypeBox" minWidth="-Infinity" mnemonicParsing="false" style="-fx-background-color: LIGHTGREY;" text="%ui.page.type.not.selected">
                            <items>
-                              <MenuItem fx:id="ppPageNormal" mnemonicParsing="false" onAction="#ppPageNormalSelect" text="%page.type.normal" />
-                              <MenuItem fx:id="ppPageCU" mnemonicParsing="false" onAction="#ppPageCUSelect" text="%page.type.cu" />
-                              <MenuItem fx:id="ppPageST" mnemonicParsing="false" onAction="#ppPageSTSelect" text="%page.type.st" />
-                              <MenuItem fx:id="ppPagePT" mnemonicParsing="false" onAction="#ppPagePTSelect" text="%page.type.pt" />
+                              <MenuItem fx:id="ppPageNormal" mnemonicParsing="false" onAction="#ppPageNormalSelect" text="%normal" />
+                              <MenuItem fx:id="ppPageCU" mnemonicParsing="false" onAction="#ppPageCUSelect" text="%checkup" />
+                              <MenuItem fx:id="ppPageST" mnemonicParsing="false" onAction="#ppPageSTSelect" text="%selftest" />
+                              <MenuItem fx:id="ppPagePT" mnemonicParsing="false" onAction="#ppPagePTSelect" text="%ptest" />
                            </items>
                         </MenuButton>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox fx:id="ppActivityValue" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.act.value">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="ppActivityValueField" prefHeight="27.0" prefWidth="132.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <Text fx:id="ppActivityCoord" strokeType="OUTSIDE" strokeWidth="0.0" text="%ui.coord">
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Text>
+                  <HBox fx:id="ppActivityX1" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.x1">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="ppActivityX1Spinner" editable="true" prefHeight="27.0" prefWidth="100.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox fx:id="ppActivityY1" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.y1">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="ppActivityY1Spinner" editable="true" prefHeight="27.0" prefWidth="100.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox fx:id="ppActivityX2" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.x2">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="ppActivityX2Spinner" editable="true" prefHeight="27.0" prefWidth="100.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox fx:id="ppActivityY2" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.y2">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="ppActivityY2Spinner" editable="true" prefHeight="27.0" prefWidth="100.0" />
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <HBox fx:id="ppActivityRotation" alignment="CENTER_LEFT">
+                     <children>
+                        <Label text="%ui.rotation">
+                           <HBox.margin>
+                              <Insets right="10.0" top="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Pane HBox.hgrow="ALWAYS" />
+                        <Spinner fx:id="ppActivityRotationSpinner" editable="true" prefHeight="27.0" prefWidth="100.0" />
                      </children>
                      <VBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -229,54 +320,6 @@
       </AnchorPane>
    </right>
    <center>
-      <GridPane fx:id="centerPane" style="-fx-background-color: GREY;" BorderPane.alignment="CENTER">
-        <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints valignment="TOP" vgrow="ALWAYS" />
-          <RowConstraints valignment="CENTER" />
-        </rowConstraints>
-         <children>
-            <HBox fx:id="PDFToolBar" prefHeight="50.0" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-               <children>
-                  <Pane HBox.hgrow="ALWAYS" />
-                  <Button fx:id="PDFPreviousButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#PDFPreviousButtonClick" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: LIGHTGREY;" text="&lt;">
-                     <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                     </HBox.margin>
-                  </Button>
-                  <TextField fx:id="PDFPageJump" alignment="CENTER" onAction="#PDFPageJumpAction" prefHeight="27.0" prefWidth="37.0">
-                     <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="12.0" />
-                     </HBox.margin>
-                  </TextField>
-                  <Text fx:id="PDFTotalPage" strokeType="OUTSIDE" strokeWidth="0.0" text="/ XX">
-                     <font>
-                        <Font size="15.0" />
-                     </font>
-                     <HBox.margin>
-                        <Insets bottom="5.0" right="5.0" top="15.0" />
-                     </HBox.margin>
-                  </Text>
-                  <Button fx:id="PDFNextButton" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#PDFNextButtonClick" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: LIGHTGREY;" text="&gt;">
-                     <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                     </HBox.margin>
-                  </Button>
-                  <Pane HBox.hgrow="ALWAYS" />
-               </children>
-            </HBox>
-            <AnchorPane fx:id="PDFAnchor" style="-fx-background-color: BLUE;" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
-               <children>
-                  <StackPane fx:id="PDFStack" style="-fx-background-color: GREEN;" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
-                     <children>
-                        <ImageView fx:id="PDFView" pickOnBounds="true" preserveRatio="true" StackPane.alignment="CENTER" />
-                     </children>
-                  </StackPane>
-               </children>
-            </AnchorPane>
-         </children>
-      </GridPane>
+      <AnchorPane fx:id="pdfViewAnchor" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>

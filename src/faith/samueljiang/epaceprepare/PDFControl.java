@@ -3,9 +3,11 @@ package faith.samueljiang.epaceprepare;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import java.awt.image.BufferedImage;
@@ -64,6 +66,7 @@ public class PDFControl {
 
     public void bufferImage(int page) {
         // Buffer the next 5 and 5 previous pages on another thread
+        page--; // Convert to 0-X
         int backwards = page - 1;
         int forwards = page + 1;
         int count = 0;
@@ -91,11 +94,26 @@ public class PDFControl {
     }
 
 
+    public Point2D getPageDimen(int page) {
+        page--;
+
+        PDPage pdfPage = pdf.getPage(page);
+        return new Point2D(pdfPage.getMediaBox().getWidth(), pdfPage.getMediaBox().getHeight());
+    }
+
     public Label getRightLabel() {
         return rightLabel;
     }
 
     public ResourceBundle getLocaleResource() {
         return localeResource;
+    }
+
+    public Double getPDFWidth(int page) {
+        return (double) pdf.getPage(page).getMediaBox().getWidth();
+    }
+
+    public Double getPDFHeight(int page) {
+        return (double) pdf.getPage(page).getMediaBox().getHeight();
     }
 }

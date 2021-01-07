@@ -191,6 +191,23 @@ public class PrepareSdk {
     }
 
 
+    public void setPageToConfig(Integer page, Element pageNode) throws NoSuchFieldException, IOException, ParserConfigurationException, SAXException {
+        if (this.config == null) {  // If the config file has never been opened in this session, open it
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            this.config = docBuilder.parse(project.getConfigFile());
+        }
+
+        NodeList pageList = config.getElementsByTagName("Page");
+        for (int i = 0; i < pageList.getLength(); i++) {
+            Element node = (Element) pageList.item(i);
+            if (node.getAttribute("id").equals(page.toString())) {
+                pageList.item(i).getParentNode().replaceChild((Node) pageNode, pageList.item(i));
+            }
+        }
+    }
+
+
     private void parseFreeText(Node activity, Element configOnPage, Integer id) {
         // Only parse this <freetext> that is visible
         if (activity.getAttributes().getNamedItem("opacity").getNodeValue().equals("1")) {
